@@ -505,9 +505,292 @@ document.addEventListener("DOMContentLoaded", function() {
     ortoVisualElement.style.borderRadius = "3px";
     canvas.parentElement.appendChild(ortoVisualElement);
     
-    var anguloInfoElement = document.createElement("div");
-    anguloInfoElement.style.position = "absolute";
-    anguloInfoElement.style.display = "none";
-    anguloInfoElement.style.fontFamily = "monospace";
-    anguloInfoElement.style.fontSize = "12px";
-    anguloInfoElement.style.backgroundColor =
+var anguloInfoElement = document.createElement("div");
+anguloInfoElement.style.position = "absolute";
+anguloInfoElement.style.display = "none";
+anguloInfoElement.style.fontFamily = "monospace";
+anguloInfoElement.style.fontSize = "12px";
+anguloInfoElement.style.backgroundColor = "#666666";
+anguloInfoElement.style.color = "white";
+anguloInfoElement.style.padding = "2px 5px";
+anguloInfoElement.style.borderRadius = "3px";
+canvas.parentElement.appendChild(anguloInfoElement);
+
+// Función para iniciar dibujo (corregida)
+function iniciarDibujoEn(x, y) {
+    guardarEstadoCanvas();
+    puntoInicial = { x: x, y: y };
+    
+    // Dibujar punto inicial en rojo
+    ctx.beginPath();
+    ctx.fillStyle = "#ff0000";  // Color rojo para el punto inicial
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Dibujar línea de proyección (esto solo marca el punto inicial)
+    ctx.beginPath();
+    ctx.setLineDash([5, 3]);
+    ctx.strokeStyle = "#ffffff";  // Color blanco para la línea punteada inicial
+    ctx.lineWidth = 2;  // Aumentamos el grosor para mejor visibilidad
+    ctx.moveTo(x, y);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+}
+
+// Función para actualizar dibujo cuando se mueve el mouse (corregida)
+canvas.addEventListener("mousemove", function(e) {
+    var rect = canvas.getBoundingClientRect();
+    var x = e.clientX - rect.left;
+    var y = e.clientY - rect.top;
+    
+    var snapResultado = encontrarSnapPunto(x, y);
+    if (snapResultado.encontrado) {
+        x = snapResultado.x;
+        y = snapResultado.y;
+    }
+    
+    coordsElement.textContent = "X: " + Math.round(x) + ", Y: " + Math.round(y);
+    
+    if (coordenadasPrecisasActivas && inputXElement && inputYElement) {
+        inputXElement.value = Math.round(x * 10) / 10;
+        inputYElement.value = Math.round(y * 10) / 10;
+    }
+    
+    if (puntoInicial !== null && !dimensionManualActiva) {
+        restaurarEstadoCanvas();
+        
+        // Dibujar punto inicial en rojo
+        ctx.beginPath();
+        ctx.fillStyle = "#ff0000";
+        ctx.arc(puntoInicial.x, puntoInicial.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+        
+        if (snapResultado.encontrado) {
+            dibujarSnapIndicador(x, y);
+        }
+        
+        var puntoFinal = restriccionAngulo ? restringirAngulo(puntoInicial.x, puntoInicial.y, x, y) : {x: x, y: y};
+        
+        // Dibujar línea de proyección
+        ctx.beginPath();
+        ctx.setLineDash([5, 3]);
+        ctx.strokeStyle = "#ffffff";  // Asegurar que la línea sea blanca
+        ctx.lineWidth = 2;  // Grosor mayor para mejor visibilidad
+        ctx.moveTo(puntoInicial.x, puntoInicial.y);
+        ctx.lineTo(puntoFinal.x, puntoFinal.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+        mostrarAnguloVisual(puntoInicial.x, puntoInicial.y, puntoFinal.x, puntoFinal.y);
+        mostrarDistanciaVisual(puntoInicial.x, puntoInicial.y, puntoFinal.x, puntoFinal.y);
+        mostrarOrtoVisual(puntoInicial.x, puntoInicial.y, puntoFinal.x, puntoFinal.y);
+        
+        var longitud = Math.round(calcularDistancia(puntoInicial.x, puntoInicial.y, puntoFinal.x, puntoFinal.y));
+        var angulo = Math.round(calcularAngulo(puntoInicial.x, puntoInicial.y, puntoFinal.x, puntoFinal.y));
+        lineInfoElement.textContent = "Longitud: " + longitud + " | Ángulo: " + angulo + "°";
+    } else if (dibujando && modoActual === "mano") {
+        ctx.beginPath();
+        ctx.moveTo(xAnterior, yAnterior);
+        ctx.lineTo(x, y);
+        ctx.strokeStyle = "#ffffff";  // Asegurar que la línea sea blanca
+        ctx.lineWidth = 2;  // Grosor mayor para mejor visibilidad
+        ctx.stroke();
+        xAnterior = x;
+        yAnterior = y;
+    } else {
+        restaurarEstadoCanvas();
+        dibujarPuntosExtremos();
+        
+        var puntoEnLinea = encontrarPuntoEnLinea(x, y);
+        if (puntoEnLinea.encontrado) {
+            dibujarPuntosEnLinea();
+        }
+    }
+});
+
+// Modificar la función mousedown para asegurar que el dibujo sea visible
+canvas.addEventListener("mousedown", function(e) {
+    var rect = canvas.getBoundingClientRect();
+    var x = e.clientX - rect.left;
+    var y = e.clientY - rect.top;
+    
+    var snapResultado = encontrarSnapPunto(x, y);
+    if (snapResultado.encontrado) {
+        x = snapResultado.x;
+        y = snapResultado.y;
+    }
+    
+    if (coordenadasPrecisasActivas && inputXElement && inputYElement) {
+        x = parseFloat(inputXElement.value);
+        y = parseFloat(inputYElement.value);
+    }
+    
+    if (modoActual === "linea" || modoActual === "rectangulo" || modoActual === "circulo" || modoActual === "elipse") {
+        if (puntoInicial === null) {
+            iniciarDibujoEn(x, y);
+        } else {
+            var puntoFinal = restriccionAngulo ? restringirAngulo(puntoInicial.x, puntoInicial.y, x, y) : {x: x, y: y};
+            
+            // Dibujar en 2D
+            ctx.beginPath();
+            ctx.strokeStyle = "#ffffff"; // Asegurar que la línea sea blanca
+            ctx.lineWidth = 2;  // Grosor mayor para mejor visibilidad
+            
+            if (modoActual === "linea") {
+                ctx.moveTo(puntoInicial.x, puntoInicial.y);
+                ctx.lineTo(puntoFinal.x, puntoFinal.y);
+                ctx.stroke();
+                
+                // Guardar la línea en el array de formas
+                formas.push({
+                    tipo: "linea",
+                    x1: puntoInicial.x,
+                    y1: puntoInicial.y,
+                    x2: puntoFinal.x,
+                    y2: puntoFinal.y,
+                    color: "#ffffff"  // Establecer color explícitamente
+                });
+                
+                // Mostrar información de la línea
+                var distancia = calcularDistancia(puntoInicial.x, puntoInicial.y, puntoFinal.x, puntoFinal.y);
+                var angulo = calcularAngulo(puntoInicial.x, puntoInicial.y, puntoFinal.x, puntoFinal.y);
+                if (angulo < 0) angulo += 360;
+                lineInfoElement.textContent = "Longitud: " + distancia.toFixed(2) + " | Ángulo: " + Math.round(angulo) + "°";
+            } else if (modoActual === "rectangulo") {
+                var ancho = puntoFinal.x - puntoInicial.x;
+                var alto = puntoFinal.y - puntoInicial.y;
+                ctx.rect(puntoInicial.x, puntoInicial.y, ancho, alto);
+                ctx.stroke();
+                
+                formas.push({
+                    tipo: "rectangulo",
+                    x: puntoInicial.x,
+                    y: puntoInicial.y,
+                    ancho: ancho,
+                    alto: alto,
+                    color: "#ffffff"  // Establecer color explícitamente
+                });
+            } else if (modoActual === "circulo") {
+                var radio = calcularDistancia(puntoInicial.x, puntoInicial.y, puntoFinal.x, puntoFinal.y);
+                ctx.arc(puntoInicial.x, puntoInicial.y, radio, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                formas.push({
+                    tipo: "circulo",
+                    x: puntoInicial.x,
+                    y: puntoInicial.y,
+                    radio: radio,
+                    color: "#ffffff"  // Establecer color explícitamente
+                });
+            } else if (modoActual === "elipse") {
+                // Implementación para dibujar elipse
+                var radiusX = Math.abs(puntoFinal.x - puntoInicial.x);
+                var radiusY = Math.abs(puntoFinal.y - puntoInicial.y);
+                dibujarElipse(ctx, puntoInicial.x, puntoInicial.y, radiusX, radiusY);
+                
+                formas.push({
+                    tipo: "elipse",
+                    x: puntoInicial.x,
+                    y: puntoInicial.y,
+                    radiusX: radiusX,
+                    radiusY: radiusY,
+                    color: "#ffffff"  // Establecer color explícitamente
+                });
+            }
+            
+            // Dibujar en 3D si está activa
+            if (container3D.style.display !== 'none' && modoActual === "linea") {
+                createLine3D(puntoInicial.x, puntoInicial.y, puntoFinal.x, puntoFinal.y);
+            }
+            
+            puntoInicial = null;
+            actualizarSnapPuntos();
+            guardarEstadoCanvas();
+            dibujarPuntosExtremos();
+        }
+    } else if (modoActual === "mano") {
+        dibujando = true;
+        xAnterior = x;
+        yAnterior = y;
+    }
+});
+
+// Función auxiliar para dibujar elipse (si no existe)
+function dibujarElipse(contexto, x, y, radiusX, radiusY) {
+    contexto.beginPath();
+    contexto.ellipse(x, y, radiusX, radiusY, 0, 0, Math.PI * 2);
+    contexto.stroke();
+}
+
+// Asegurar que la configuración inicial sea correcta
+function inicializarConfiguracion() {
+    // Configuración inicial del contexto
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#ffffff"; // Línea blanca
+    ctx.fillStyle = "#ff0000"; // Punto rojo
+    
+    // Mensaje inicial
+    mostrarMensajeTemporalEstado("Editor CAD listo - Colores configurados");
+}
+
+// Función para restaurar el estado del canvas
+function restaurarEstadoCanvas() {
+    if (canvasState) {
+        ctx.putImageData(canvasState, 0, 0);
+    }
+    
+    // Volver a establecer el estilo de línea después de restaurar
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#ffffff";
+    ctx.fillStyle = "#ff0000";
+    
+    dibujarRejilla();
+}
+
+// Función para dibujar todas las formas existentes
+function dibujarFormas() {
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#ffffff";
+    
+    for (var i = 0; i < formas.length; i++) {
+        var forma = formas[i];
+        ctx.beginPath();
+        
+        ctx.strokeStyle = forma.color || "#ffffff"; // Usar el color almacenado o blanco por defecto
+        
+        if (forma.tipo === "linea") {
+            ctx.moveTo(forma.x1, forma.y1);
+            ctx.lineTo(forma.x2, forma.y2);
+        } else if (forma.tipo === "rectangulo") {
+            ctx.rect(forma.x, forma.y, forma.ancho, forma.alto);
+        } else if (forma.tipo === "circulo") {
+            ctx.arc(forma.x, forma.y, forma.radio, 0, Math.PI * 2);
+        } else if (forma.tipo === "elipse") {
+            ctx.ellipse(forma.x, forma.y, forma.radiusX, forma.radiusY, 0, 0, Math.PI * 2);
+        } else if (forma.tipo === "polilinea") {
+            if (forma.puntos && forma.puntos.length > 0) {
+                ctx.moveTo(forma.puntos[0].x, forma.puntos[0].y);
+                for (var j = 1; j < forma.puntos.length; j++) {
+                    ctx.lineTo(forma.puntos[j].x, forma.puntos[j].y);
+                }
+            }
+        } else if (forma.tipo === "arco") {
+            ctx.moveTo(forma.x1, forma.y1);
+            ctx.quadraticCurveTo(forma.cx, forma.cy, forma.x2, forma.y2);
+        }
+        
+        ctx.stroke();
+    }
+}
+
+// Inicializar cuando el documento esté listo
+window.addEventListener("load", function() {
+    inicializarConfiguracion();
+    guardarEstadoCanvas();
+    dibujarRejilla();
+});
+
+</script>
+</body>
+</html>
