@@ -784,12 +784,739 @@ function dibujarFormas() {
     }
 }
 
-// Inicializar cuando el documento esté listo
+// Función para calcular distancia entre dos puntos
+function calcularDistancia(x1, y1, x2, y2) {
+    return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+}
+
+// Función para calcular ángulo entre dos puntos
+function calcularAngulo(x1, y1, x2, y2) {
+    return Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+}
+
+// Función para restringir ángulo (ortogonal)
+function restringirAngulo(x1, y1, x2, y2) {
+    if (!restriccionAngulo) return {x: x2, y: y2};
+    
+    var angulo = Math.atan2(y2 - y1, x2 - x1);
+    var angulos = [0, Math.PI/2, Math.PI, -Math.PI/2];
+    var anguloMasCercano = angulos.reduce(function(prev, curr) {
+        return (Math.abs(curr - angulo) < Math.abs(prev - angulo)) ? curr : prev;
+    });
+    
+    var distancia = calcularDistancia(x1, y1, x2, y2);
+    var newX = x1 + Math.cos(anguloMasCercano) * distancia;
+    var newY = y1 + Math.sin(anguloMasCercano) * distancia;
+    
+    return {x: newX, y: newY};
+}
+
+// Función para dibujar rejilla
+function dibujarRejilla() {
+    if (!rejillaActiva) return;
+    
+    ctx.save();
+    ctx.strokeStyle = "#444444";
+    ctx.lineWidth = 0.5;
+    
+    for (var x = tamanoRejilla; x < canvas.width; x += tamanoRejilla) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+    }
+    
+    for (var y = tamanoRejilla; y < canvas.height; y += tamanoRejilla) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+    }
+    
+    ctx.restore();
+}
+
+// Función para guardar estado del canvas
+function guardarEstadoCanvas() {
+    canvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    if (posicionHistorial < historialEstados.length - 1) {
+        historialEstados = historialEstados.slice(0, posicionHistorial + 1);
+    }
+    historialEstados.push({
+        imagen: ctx.getImageData(0, 0, canvas.width, canvas.height),
+        formas: JSON.parse(JSON.stringify(formas))
+    });
+    if (historialEstados.length > MAX_HISTORIAL) {
+        historialEstados.shift();
+    }
+    posicionHistorial = historialEstados.length - 1;
+}
+
+// Función para encontrar snap punto
+function encontrarSnapPunto(x, y) {
+    if (snapActivo) {
+        var distanciaMinima = 10;
+        var puntoMasCercano = null;
+        var tipoSnap = "";
+        
+        for (var i = 0; i < snapPuntos.length; i++) {
+            var punto = snapPuntos[i];
+            var distancia = calcularDistancia(x, y, punto.x, punto.y);
+            
+            if (distancia < distanciaMinima) {
+                distanciaMinima = distancia;
+                puntoMasCercano = punto;
+                tipoSnap = punto.tipo;
+            }
+        }
+        
+        if (puntoMasCercano) {
+            snapInfoElement.textContent = "Snap: " + tipoSnap;
+            return {
+                x: puntoMasCercano.x,
+                y: puntoMasCercano.y,
+                encontrado: true,
+                punto: puntoMasCercano
+            };
+        }
+        
+        snapInfoElement.textContent = "";
+    }
+    
+    if (snapToGridActivo) {
+        var coordsRejilla = ajustarARejilla(x, y);
+        snapInfoElement.textContent = "Snap: Rejilla";
+        return {
+            x: coordsRejilla.x,
+            y: coordsRejilla.y,
+            encontrado: true
+        };
+    }
+    
+    snapInfoElement.textContent = "";
+    return {x: x, y: y, encontrado: false};
+}
+
+// Función para ajustar a rejilla
+function ajustarARejilla(x, y) {
+    if (!snapToGridActivo) return {x: x, y: y};
+    
+    var gridX = Math.round(x / tamanoRejilla) * tamanoRejilla;
+    var gridY = Math.round(y / tamanoRejilla) * tamanoRejilla;
+    
+    return {x: gridX, y: gridY};
+}
+
+// Función para dibujar snap indicador
+function dibujarSnapIndicador(x, y) {
+    if (!snapActivo && !snapToGridActivo) return;
+    
+    ctx.save();
+    ctx.fillStyle = "#00ff00";
+    ctx.beginPath();
+    ctx.arc(x, y, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+}
+
+// Función para encontrar punto en línea
+function encontrarPuntoEnLinea(x, y) {
+    lineaPuntosCercanos = [];
+    var distanciaMinima = 5;
+    var formaLinea = null;
+    var distanciaDesdeInicio = 0;
+    
+    for (var i = 0; i < formas.length; i++) {
+        var forma = formas[i];
+        
+        if (forma.tipo === "linea") {
+            var dx = forma.x2 - forma.x1;
+            var dy = forma.y2 - forma.y1;
+            var longitud = Math.sqrt(dx * dx + dy * dy);
+            var u = ((x - forma.x1) * dx + (y - forma.y1) * dy) / (longitud * longitud);
+            
+            if (u >= 0 && u <= 1) {
+                var px = forma.x1 + u * dx;
+                var py = forma.y1 + u * dy;
+                var distancia = calcularDistancia(x, y, px, py);
+                
+                if (distancia < distanciaMinima) {
+                    distanciaMinima = distancia;
+                    formaLinea = forma;
+                    distanciaDesdeInicio = u * longitud;
+                    lineaPuntosCercanos = [{
+                        x: px,
+                        y: py,
+                        distancia: Math.round(distanciaDesdeInicio)
+                    }];
+                }
+            }
+        }
+    }
+    
+    return formaLinea ? {
+        encontrado: true,
+        x: lineaPuntosCercanos[0].x,
+        y: lineaPuntosCercanos[0].y,
+        distancia: lineaPuntosCercanos[0].distancia
+    } : {
+        encontrado: false
+    };
+}
+
+// Función para dibujar puntos en línea
+function dibujarPuntosEnLinea() {
+    if (lineaPuntosCercanos.length > 0) {
+        ctx.save();
+        ctx.fillStyle = "#00ff00";
+        
+        for (var i = 0; i < lineaPuntosCercanos.length; i++) {
+            var punto = lineaPuntosCercanos[i];
+            ctx.beginPath();
+            ctx.arc(punto.x, punto.y, 4, 0, Math.PI * 2);
+            ctx.fill();
+            
+            distanciaInfoElement.style.left = punto.x + "px";
+            distanciaInfoElement.style.top = (punto.y - 20) + "px";
+            distanciaInfoElement.textContent = "Dist: " + punto.distancia;
+            distanciaInfoElement.style.display = "block";
+        }
+        
+        ctx.restore();
+    } else {
+        distanciaInfoElement.style.display = "none";
+    }
+}
+
+// Función para dibujar puntos extremos
+function dibujarPuntosExtremos() {
+    ctx.save();
+    ctx.fillStyle = "#ff0000";
+    
+    for (var i = 0; i < formas.length; i++) {
+        var forma = formas[i];
+        
+        if (forma.tipo === "linea") {
+            ctx.beginPath();
+            ctx.arc(forma.x1, forma.y1, 3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.arc(forma.x2, forma.y2, 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    ctx.restore();
+}
+
+// Función para mostrar ángulo visual
+function mostrarAnguloVisual(x1, y1, x2, y2) {
+    if (puntoInicial && (modoActual === "linea" || modoActual === "rectangulo")) {
+        var angulo = calcularAngulo(x1, y1, x2, y2);
+        anguloActual = angulo;
+        
+        var puntoMedio = {x: (x1 + x2) / 2, y: (y1 + y2) / 2};
+        anguloVisualElement.style.left = puntoMedio.x + "px";
+        anguloVisualElement.style.top = puntoMedio.y + "px";
+        anguloVisualElement.textContent = Math.round(angulo) + "°";
+        anguloVisualElement.style.display = "block";
+    } else {
+        anguloVisualElement.style.display = "none";
+    }
+}
+
+// Función para mostrar distancia visual
+function mostrarDistanciaVisual(x1, y1, x2, y2) {
+    if (puntoInicial && (modoActual === "linea" || modoActual === "rectangulo" || modoActual === "circulo")) {
+        var distancia = calcularDistancia(x1, y1, x2, y2);
+        var puntoMedio = {x: (x1 + x2) / 2, y: (y1 + y2) / 2};
+        
+        var dx = x2 - x1;
+        var dy = y2 - y1;
+        var longitud = Math.sqrt(dx*dx + dy*dy);
+        
+        if (longitud > 0) {
+            var nx = -dy / longitud;
+            var ny = dx / longitud;
+            puntoMedio.x += nx * 15;
+            puntoMedio.y += ny * 15;
+        } else {
+            puntoMedio.y -= 15;
+        }
+        
+        distanciaVisualElement.style.left = puntoMedio.x + "px";
+        distanciaVisualElement.style.top = puntoMedio.y + "px";
+        distanciaVisualElement.textContent = distancia.toFixed(2) + " px";
+        distanciaVisualElement.style.display = "block";
+    } else {
+        distanciaVisualElement.style.display = "none";
+    }
+}
+
+// Función para mostrar orto visual
+function mostrarOrtoVisual(x1, y1, x2, y2) {
+    if (puntoInicial && modoActual === "linea") {
+        var distancia = calcularDistancia(x1, y1, x2, y2);
+        var angulo = calcularAngulo(x1, y1, x2, y2);
+        
+        if (angulo < 0) angulo += 360;
+        
+        var refAngulo = 0;
+        if (angulo <= 90) refAngulo = 90;
+        else if (angulo <= 180) refAngulo = 180;
+        else if (angulo <= 270) refAngulo = 270;
+        else refAngulo = 360;
+        
+        ortoVisualElement.style.left = (x2 + 60) + "px";
+        ortoVisualElement.style.top = (y2 + 60) + "px";
+        ortoVisualElement.textContent = "Orto: " + distancia.toFixed(2) + " < " + refAngulo + "°";
+        ortoVisualElement.style.display = "block";
+        
+        anguloInfoElement.style.left = (x2 - 20) + "px";
+        anguloInfoElement.style.top = (y2 - 25) + "px";
+        anguloInfoElement.textContent = Math.round(angulo) + "°";
+        anguloInfoElement.style.display = "block";
+    } else {
+        ortoVisualElement.style.display = "none";
+        anguloInfoElement.style.display = "none";
+    }
+}
+
+// Función para actualizar snap puntos
+function actualizarSnapPuntos() {
+    snapPuntos = [];
+    
+    for (var i = 0; i < formas.length; i++) {
+        var forma = formas[i];
+        
+        if (forma.tipo === "linea") {
+            if (tiposSnap.puntoFinal) {
+                snapPuntos.push({x: forma.x1, y: forma.y1, tipo: "punto final", forma: forma});
+                snapPuntos.push({x: forma.x2, y: forma.y2, tipo: "punto final", forma: forma});
+            }
+            
+            if (tiposSnap.puntoMedio) {
+                snapPuntos.push({
+                    x: (forma.x1 + forma.x2) / 2,
+                    y: (forma.y1 + forma.y2) / 2,
+                    tipo: "punto medio",
+                    forma: forma
+                });
+            }
+        } else if (forma.tipo === "rectangulo") {
+            if (tiposSnap.puntoFinal) {
+                snapPuntos.push({x: forma.x, y: forma.y, tipo: "punto final", forma: forma});
+                snapPuntos.push({x: forma.x + forma.ancho, y: forma.y, tipo: "punto final", forma: forma});
+                snapPuntos.push({x: forma.x, y: forma.y + forma.alto, tipo: "punto final", forma: forma});
+                snapPuntos.push({x: forma.x + forma.ancho, y: forma.y + forma.alto, tipo: "punto final", forma: forma});
+            }
+            
+            if (tiposSnap.puntoMedio) {
+                snapPuntos.push({x: forma.x + forma.ancho/2, y: forma.y, tipo: "punto medio", forma: forma});
+                snapPuntos.push({x: forma.x, y: forma.y + forma.alto/2, tipo: "punto medio", forma: forma});
+                snapPuntos.push({x: forma.x + forma.ancho, y: forma.y + forma.alto/2, tipo: "punto medio", forma: forma});
+                snapPuntos.push({x: forma.x + forma.ancho/2, y: forma.y + forma.alto, tipo: "punto medio", forma: forma});
+            }
+            
+            if (tiposSnap.centroGeometrico) {
+                snapPuntos.push({
+                    x: forma.x + forma.ancho/2,
+                    y: forma.y + forma.alto/2,
+                    tipo: "centro geométrico",
+                    forma: forma
+                });
+            }
+        } else if (forma.tipo === "circulo") {
+            if (tiposSnap.centro) {
+                snapPuntos.push({x: forma.x, y: forma.y, tipo: "centro", forma: forma});
+            }
+            
+            if (tiposSnap.cuadrante) {
+                snapPuntos.push({x: forma.x + forma.radio, y: forma.y, tipo: "cuadrante", forma: forma});
+                snapPuntos.push({x: forma.x - forma.radio, y: forma.y, tipo: "cuadrante", forma: forma});
+                snapPuntos.push({x: forma.x, y: forma.y + forma.radio, tipo: "cuadrante", forma: forma});
+                snapPuntos.push({x: forma.x, y: forma.y - forma.radio, tipo: "cuadrante", forma: forma});
+            }
+        } else if (forma.tipo === "elipse") {
+            if (tiposSnap.centro) {
+                snapPuntos.push({x: forma.x, y: forma.y, tipo: "centro", forma: forma});
+            }
+            
+            if (tiposSnap.cuadrante) {
+                snapPuntos.push({x: forma.x + forma.radiusX, y: forma.y, tipo: "cuadrante", forma: forma});
+                snapPuntos.push({x: forma.x - forma.radiusX, y: forma.y, tipo: "cuadrante", forma: forma});
+                snapPuntos.push({x: forma.x, y: forma.y + forma.radiusY, tipo: "cuadrante", forma: forma});
+                snapPuntos.push({x: forma.x, y: forma.y - forma.radiusY, tipo: "cuadrante", forma: forma});
+            }
+        }
+    }
+}
+
+// Función para mostrar mensaje temporal
+function mostrarMensajeTemporalEstado(mensaje) {
+    var mensajeElement = document.createElement("div");
+    mensajeElement.style.position = "absolute";
+    mensajeElement.style.top = "10px";
+    mensajeElement.style.left = "50%";
+    mensajeElement.style.transform = "translateX(-50%)";
+    mensajeElement.style.backgroundColor = "rgba(0, 0, 0, 0.7)";
+    mensajeElement.style.color = "white";
+    mensajeElement.style.padding = "8px 15px";
+    mensajeElement.style.borderRadius = "4px";
+    mensajeElement.style.zIndex = "2000";
+    mensajeElement.style.fontFamily = "Arial, sans-serif";
+    mensajeElement.textContent = mensaje;
+    
+    document.body.appendChild(mensajeElement);
+    
+    setTimeout(function() {
+        mensajeElement.style.transition = "opacity 0.5s";
+        mensajeElement.style.opacity = "0";
+        
+        setTimeout(function() {
+            document.body.removeChild(mensajeElement);
+        }, 500);
+    }, 1500);
+}
+
+// Función para deshacer
+function deshacer() {
+    if (posicionHistorial > 0) {
+        posicionHistorial--;
+        var estadoAnterior = historialEstados[posicionHistorial];
+        ctx.putImageData(estadoAnterior.imagen, 0, 0);
+        formas = JSON.parse(JSON.stringify(estadoAnterior.formas));
+        actualizarSnapPuntos();
+    }
+}
+
+// Ahora añadimos los event listeners para los botones que faltaban
+
+// Event Listeners para botones de herramientas
+document.getElementById("btnElipse").addEventListener("click", function() {
+    modoActual = "elipse";
+    activarBoton("btnElipse");
+    puntoInicial = null;
+    entradaDimensionesElement.style.display = "none";
+    dimensionManualActiva = false;
+});
+
+document.getElementById("btnLinea").addEventListener("click", function() {
+    modoActual = "linea";
+    activarBoton("btnLinea");
+    puntoInicial = null;
+    entradaDimensionesElement.style.display = "none";
+    dimensionManualActiva = false;
+});
+
+document.getElementById("btnRectangulo").addEventListener("click", function() {
+    modoActual = "rectangulo";
+    activarBoton("btnRectangulo");
+    puntoInicial = null;
+    entradaDimensionesElement.style.display = "none";
+    dimensionManualActiva = false;
+});
+
+document.getElementById("btnCirculo").addEventListener("click", function() {
+    modoActual = "circulo";
+    activarBoton("btnCirculo");
+    puntoInicial = null;
+    entradaDimensionesElement.style.display = "none";
+    dimensionManualActiva = false;
+});
+
+document.getElementById("btnMano").addEventListener("click", function() {
+    modoActual = "mano";
+    activarBoton("btnMano");
+    puntoInicial = null;
+    entradaDimensionesElement.style.display = "none";
+    dimensionManualActiva = false;
+});
+
+document.getElementById("btnPolilinea").addEventListener("click", function() {
+    modoActual = "polilinea";
+    activarBoton("btnPolilinea");
+    puntoInicial = null;
+    entradaDimensionesElement.style.display = "none";
+    dimensionManualActiva = false;
+});
+
+document.getElementById("btnArco").addEventListener("click", function() {
+    modoActual = "arco";
+    activarBoton("btnArco");
+    puntoInicial = null;
+    entradaDimensionesElement.style.display = "none";
+    dimensionManualActiva = false;
+});
+
+document.getElementById("btnDimension").addEventListener("click", function() {
+    dimensionManualActiva = !dimensionManualActiva;
+    this.classList.toggle("active");
+    entradaDimensionesElement.style.display = dimensionManualActiva ? "block" : "none";
+    
+    if (dimensionManualActiva) {
+        inputDistanciaElement.focus();
+    }
+});
+
+document.getElementById("btnAplicarDimensiones").addEventListener("click", function() {
+    aplicarDimensionManual();
+});
+
+document.getElementById("btnRestriccion").addEventListener("click", function() {
+    restriccionAngulo = !restriccionAngulo;
+    this.textContent = "Restricción 90° (" + (restriccionAngulo ? "ON" : "OFF") + ")";
+});
+
+document.getElementById("btnSnap").addEventListener("click", function(e) {
+    e.stopPropagation();
+    snapActivo = !snapActivo;
+    this.textContent = "Snap (" + (snapActivo ? "ON" : "OFF") + ")";
+    
+    var menu = document.getElementById("menuSnapObjetos");
+    if (menu.style.display === "none" || menu.style.display === "") {
+        menu.style.display = "block";
+        menu.style.left = this.getBoundingClientRect().left + "px";
+        menu.style.top = (this.getBoundingClientRect().bottom + 5) + "px";
+    } else {
+        menu.style.display = "none";
+    }
+});
+
+document.getElementById("btnRejilla").addEventListener("click", function() {
+    rejillaActiva = !rejillaActiva;
+    this.textContent = "Rejilla (" + (rejillaActiva ? "ON" : "OFF") + ")";
+    restaurarEstadoCanvas();
+    dibujarRejilla();
+});
+
+document.getElementById("btnSnapGrid").addEventListener("click", function() {
+    snapToGridActivo = !snapToGridActivo;
+    this.textContent = "Snap a Rejilla (" + (snapToGridActivo ? "ON" : "OFF") + ")";
+});
+
+document.getElementById("btnDeshacer").addEventListener("click", function() {
+    deshacer();
+});
+
+document.getElementById("btnLimpiar").addEventListener("click", function() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    puntoInicial = null;
+    canvasState = null;
+    formas = [];
+    snapPuntos = [];
+    lineaPuntosCercanos = [];
+    lineInfoElement.textContent = "Longitud: 0 | Ángulo: 0°";
+    anguloVisualElement.style.display = "none";
+    snapInfoElement.textContent = "";
+    distanciaInfoElement.style.display = "none";
+    distanciaVisualElement.style.display = "none";
+    historialEstados = [];
+    posicionHistorial = -1;
+    guardarEstadoCanvas();
+});
+
+document.getElementById("btnAtajos").addEventListener("click", function() {
+    document.getElementById("modalAtajos").style.display = "block";
+});
+
+document.getElementById("cerrarModalAtajos").addEventListener("click", function() {
+    document.getElementById("modalAtajos").style.display = "none";
+});
+
+// Función para aplicar dimensión manual (faltaba)
+function aplicarDimensionManual() {
+    if (!puntoInicial) return;
+    
+    var distancia = parseFloat(inputDistanciaElement.value);
+    if (isNaN(distancia)) return;
+    
+    var angulo = anguloActual;
+    if (angulo < 0) angulo += 360;
+    
+    var radians = angulo * Math.PI / 180;
+    var x2 = puntoInicial.x + Math.cos(radians) * distancia;
+    var y2 = puntoInicial.y + Math.sin(radians) * distancia;
+    
+    if (modoActual === "linea") {
+        ctx.beginPath();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2;
+        ctx.moveTo(puntoInicial.x, puntoInicial.y);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        
+        formas.push({
+            tipo: "linea",
+            x1: puntoInicial.x,
+            y1: puntoInicial.y,
+            x2: x2,
+            y2: y2,
+            color: "#ffffff"
+        });
+    } else if (modoActual === "circulo") {
+        ctx.beginPath();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2;
+        ctx.arc(puntoInicial.x, puntoInicial.y, distancia, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        formas.push({
+            tipo: "circulo",
+            x: puntoInicial.x,
+            y: puntoInicial.y,
+            radio: distancia,
+            color: "#ffffff"
+        });
+    }
+    
+    actualizarSnapPuntos();
+    guardarEstadoCanvas();
+    
+    puntoInicial = null;
+    anguloVisualElement.style.display = "none";
+    distanciaVisualElement.style.display = "none";
+    entradaDimensionesElement.style.display = "none";
+    dimensionManualActiva = false;
+    document.getElementById("btnDimension").classList.remove("active");
+}
+
+// Función para activar botón (faltaba)
+function activarBoton(id) {
+    document.getElementById("btnElipse").classList.remove("active");
+    document.getElementById("btnLinea").classList.remove("active");
+    document.getElementById("btnRectangulo").classList.remove("active");
+    document.getElementById("btnCirculo").classList.remove("active");
+    document.getElementById("btnMano").classList.remove("active");
+    document.getElementById("btnPolilinea").classList.remove("active");
+    document.getElementById("btnArco").classList.remove("active");
+    document.getElementById(id).classList.add("active");
+}
+
+// Configurar event listeners para el menú de snap
+document.getElementById("snapPuntoFinal").addEventListener("change", function() {
+    tiposSnap.puntoFinal = this.checked;
+    actualizarSnapPuntos();
+});
+
+document.getElementById("snapPuntoMedio").addEventListener("change", function() {
+    tiposSnap.puntoMedio = this.checked;
+    actualizarSnapPuntos();
+});
+
+document.getElementById("snapCentro").addEventListener("change", function() {
+    tiposSnap.centro = this.checked;
+    actualizarSnapPuntos();
+});
+
+document.getElementById("snapCentroGeometrico").addEventListener("change", function() {
+    tiposSnap.centroGeometrico = this.checked;
+    actualizarSnapPuntos();
+});
+
+document.getElementById("snapPunto").addEventListener("change", function() {
+    tiposSnap.punto = this.checked;
+    actualizarSnapPuntos();
+});
+
+document.getElementById("snapCuadrante").addEventListener("change", function() {
+    tiposSnap.cuadrante = this.checked;
+    actualizarSnapPuntos();
+});
+
+document.getElementById("snapInterseccion").addEventListener("change", function() {
+    tiposSnap.interseccion = this.checked;
+    actualizarSnapPuntos();
+});
+
+document.getElementById("snapExtension").addEventListener("change", function() {
+    tiposSnap.extension = this.checked;
+    actualizarSnapPuntos();
+});
+
+document.getElementById("snapInsercion").addEventListener("change", function() {
+    tiposSnap.insercion = this.checked;
+    actualizarSnapPuntos();
+});
+
+document.getElementById("snapPerpendicular").addEventListener("change", function() {
+    tiposSnap.perpendicular = this.checked;
+    actualizarSnapPuntos();
+});
+
+document.getElementById("snapTangente").addEventListener("change", function() {
+    tiposSnap.tangente = this.checked;
+    actualizarSnapPuntos();
+});
+
+document.getElementById("snapCercano").addEventListener("change", function() {
+    tiposSnap.cercano = this.checked;
+    actualizarSnapPuntos();
+});
+
+document.getElementById("snapInterseccionFicticia").addEventListener("change", function() {
+    tiposSnap.interseccionFicticia = this.checked;
+    actualizarSnapPuntos();
+});
+
+document.getElementById("snapParalelo").addEventListener("change", function() {
+    tiposSnap.paralelo = this.checked;
+    actualizarSnapPuntos();
+});
+
+// Inicializar coordenadas para la entrada precisa
+function inicializarCoordenadas() {
+    inputXElement = document.getElementById("inputX");
+    inputYElement = document.getElementById("inputY");
+    
+    inputXElement.addEventListener("change", function() {
+        if (puntoInicial && !dimensionManualActiva) {
+            var x = parseFloat(this.value);
+            var y = parseFloat(inputYElement.value);
+            actualizarDibujoConCoordenadas(x, y);
+        }
+    });
+    
+    inputYElement.addEventListener("change", function() {
+        if (puntoInicial && !dimensionManualActiva) {
+            var x = parseFloat(inputXElement.value);
+            var y = parseFloat(this.value);
+            actualizarDibujoConCoordenadas(x, y);
+        }
+    });
+
+inputXElement.addEventListener("keypress", function(e) {
+    if (e.key === "Enter") {
+        inputYElement.focus();
+    }
+});
+
+inputYElement.addEventListener("keypress", function(e) {
+    if (e.key === "Enter") {
+        if (puntoInicial) {
+            var x = parseFloat(inputXElement.value);
+            var y = parseFloat(this.value);
+            actualizarDibujoConCoordenadas(x, y);
+        } else {
+            iniciarDibujoEn(parseFloat(inputXElement.value), parseFloat(inputYElement.value));
+        }
+    }
+});
+}  // Cierra la función inicializarCoordenadas()
+
+// Inicialización
+inicializarCoordenadas();
+actualizarSnapPuntos();
+
+// Evento de inicialización al cargar la página
 window.addEventListener("load", function() {
     inicializarConfiguracion();
     guardarEstadoCanvas();
     dibujarRejilla();
 });
+
+}); // Cerrar la función DOMContentLoaded que comenzó arriba
 
 </script>
 </body>
