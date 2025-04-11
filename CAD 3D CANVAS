@@ -8,142 +8,177 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #1e1e1e;
-            color: white;
-        }
-        canvas {
-            display: block;
-            border: 1px solid #444;
-            background-color: #2d2d2d; /* Fondo más visible para el canvas */
-            cursor: crosshair;
-            margin: 0 auto;
-        }
-        #container3D {
-            border: 1px solid #444;
-            background-color: #000000;
-            cursor: none;
-        }
-        .active {
-            background-color: #0066cc;
-            color: white;
-        }
-        button {
-            padding: 5px 10px;
-            margin-right: 5px;
-            cursor: pointer;
-            margin-bottom: 5px;
-            background-color: #333;
-            color: white;
-            border: 1px solid #444;
-        }
-        .btn-icono {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background-color: #2c3e50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 8px;
-            margin: 3px;
-        }
-        .btn-icono.active {
-            background-color: #3498db;
-        }
-        .btn-icono svg {
-            margin-bottom: 4px;
-            width: 24px;
-            height: 24px;
-        }
-        
-        /* Estilos para los controles de zoom */
-        .zoom-controls {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            background-color: rgba(0,0,0,0.7);
-            padding: 5px;
-            border-radius: 5px;
-        }
-        
-        .zoom-button {
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #333;
-            border: 1px solid #444;
-            color: white;
-            cursor: pointer;
-            font-size: 18px;
-        }
-        
-        /* Cursor 3D personalizado */
-        .cursor3d {
-            position: absolute;
-            pointer-events: none;
-            width: 20px;
-            height: 20px;
-            border: 2px solid white;
-            border-radius: 50%;
-        }
-        .cursor3d::before,
-        .cursor3d::after {
-            content: '';
-            position: absolute;
-            background-color: white;
-        }
-        .cursor3d::before {
-            width: 2px;
-            height: 20px;
-            left: 9px;
-            top: 0;
-        }
-        .cursor3d::after {
-            width: 20px;
-            height: 2px;
-            left: 0;
-            top: 9px;
-        }
-        
-        /* Indicador de origen */
-        .origin-indicator {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            border: 2px solid yellow;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-        }
-        .origin-indicator::before,
-        .origin-indicator::after {
-            content: '';
-            position: absolute;
-            background-color: yellow;
-        }
-        .origin-indicator::before {
-            width: 1px;
-            height: 10px;
-            left: 4px;
-            top: -5px;
-        }
-        .origin-indicator::after {
-            width: 10px;
-            height: 1px;
-            left: -5px;
-            top: 4px;
-        }
-    </style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #1e1e1e;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    canvas {
+        display: block;
+        border: 1px solid #444;
+        background-color: #2d2d2d; /* Color base */
+        background-image: url('https://www.transparenttextures.com/patterns/dark-mosaic.png'); /* Textura de fondo */
+        background-blend-mode: overlay; /* Mezclar la textura con el color base */
+        cursor: crosshair;
+        margin: 0 auto;
+    }
+
+    .canvas-container {
+        border: 2px solid #555; /* Borde más suave y moderno */
+        border-radius: 5px; /* Bordes redondeados */
+        margin-top: 15px;
+        position: relative;
+        background-color: transparent;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Sombra para dar profundidad */
+    }
+
+    #container3D {
+        border: 1px solid #444;
+        background-color: #000000;
+        cursor: none;
+    }
+
+    .active {
+        background-color: #0066cc;
+        color: white;
+    }
+
+    button {
+        padding: 5px 10px;
+        margin-right: 5px;
+        cursor: pointer;
+        margin-bottom: 5px;
+        background-color: #333;
+        color: white;
+        border: 1px solid #444;
+    }
+
+    .btn-icono {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: #2c3e50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 8px;
+        margin: 3px;
+    }
+
+    .btn-icono.active {
+        background-color: #3498db;
+    }
+
+    .btn-icono svg {
+        margin-bottom: 4px;
+        width: 24px;
+        height: 24px;
+    }
+
+    /* Estilos para los controles de zoom */
+    .zoom-controls {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        background-color: rgba(0, 0, 0, 0.8); /* Fondo más oscuro y moderno */
+        padding: 5px;
+        border-radius: 5px;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); /* Sombra para los controles */
+    }
+
+    .zoom-button {
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #444; /* Color más moderno */
+        border: none; /* Sin borde para un look más limpio */
+        color: white;
+        cursor: pointer;
+        font-size: 18px;
+        border-radius: 3px;
+        transition: background-color 0.2s; /* Transición suave al interactuar */
+    }
+
+    .zoom-button:hover {
+        background-color: #666; /* Efecto hover */
+    }
+
+    /* Cursor 3D personalizado */
+    .cursor3d {
+        position: absolute;
+        pointer-events: none;
+        width: 20px;
+        height: 20px;
+        border: 2px solid white;
+        border-radius: 50%;
+    }
+
+    .cursor3d::before,
+    .cursor3d::after {
+        content: '';
+        position: absolute;
+        background-color: white;
+    }
+
+    .cursor3d::before {
+        width: 2px;
+        height: 20px;
+        left: 9px;
+        top: 0;
+    }
+
+    .cursor3d::after {
+        width: 20px;
+        height: 2px;
+        left: 0;
+        top: 9px;
+    }
+
+    /* Indicador de origen */
+    .origin-indicator {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        border: 2px solid yellow;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        background-color: rgba(255, 255, 0, 0.2); /* Fondo semi-transparente */
+    }
+
+    .origin-indicator::before,
+    .origin-indicator::after {
+        content: '';
+        position: absolute;
+        background-color: yellow;
+    }
+
+    .origin-indicator::before {
+        width: 1px;
+        height: 10px;
+        left: 4px;
+        top: -5px;
+    }
+
+    .origin-indicator::after {
+        width: 10px;
+        height: 1px;
+        left: -5px;
+        top: 4px;
+    }
+</style>
 </head>
 <body>
     <h3>Editor de Dibujo CAD Básico</h3>
@@ -157,11 +192,15 @@
     <div id="originIndicator2D" class="origin-indicator"></div>
     <div id="cursor3D" class="cursor3d"></div>
     
-    <div style="border: 1px solid #ccc; margin-top: 15px; position: relative; background-color: #2d2d2d;">
-        <canvas width="800" height="500" tabindex="0" id="lienzo"></canvas>
-        <div id="coordCanvas" style="padding: 2px 5px; left: 5px; bottom: 5px; font-family: monospace; font-size: 12px; position: absolute; background-color: rgba(0, 0, 0, 0.7); color: white;">X: 0, Y: 0</div>
-        <div id="lineInfo" style="padding: 2px 5px; right: 5px; bottom: 5px; font-family: monospace; font-size: 12px; position: absolute; background-color: rgba(0, 0, 0, 0.7); color: white;">Longitud: 0 | Ángulo: 0°</div>
-        <div id="snapInfo" style="padding: 2px 5px; top: 5px; right: 5px; font-family: monospace; font-size: 12px; position: absolute; background-color: rgba(0, 0, 0, 0.7); color: white;"></div>
+    <div class="canvas-container">
+    <canvas width="800" height="500" tabindex="0" id="lienzo"></canvas>
+    <div id="infoBar" style="padding: 5px; width: 100%; bottom: 0; left: 0; font-family: monospace; font-size: 12px; position: absolute; background-color: rgba(0, 0, 0, 0.7); color: white; display: flex; justify-content: space-between;">
+        <div id="coordCanvas">X: 0, Y: 0</div>
+        <div id="distanciaInfo" style="display: none;">Dist: 0</div>
+        <div id="snapInfo"></div>
+        <div id="lineInfo">Longitud: 0 | Ángulo: 0°</div>
+    </div>
+</div>  
         <div id="entradaDimensiones" style="padding: 5px; border: 1px solid #999; left: 200px; bottom: 5px; display: none; position: absolute; background-color: rgba(0, 0, 0, 0.9); color: white;">
             <label>Distancia: <input id="inputDistancia" style="width: 80px; background-color: #333; color: white; border: 1px solid #666;" type="number" step="0.1"></label>
             <button id="btnAplicarDimensiones">Aplicar</button>
@@ -855,15 +894,18 @@ function inicializarConfiguracion() {
         forma: { tipo: "punto" }
     });
     
-    // Mostrar etiqueta del origen
+    // Mostrar etiqueta del origen con mejor integración visual
     const origenLabel = document.createElement("div");
     origenLabel.textContent = "Origen (0,0)";
     origenLabel.style.position = "absolute";
     origenLabel.style.left = "410px";
     origenLabel.style.top = "235px";
     origenLabel.style.fontFamily = "monospace";
-    origenLabel.style.fontSize = "12px";
+    origenLabel.style.fontSize = "10px";
     origenLabel.style.color = "yellow";
+    origenLabel.style.backgroundColor = "rgba(0,0,0,0.4)"; // Fondo semi-transparente
+    origenLabel.style.padding = "2px 5px";
+    origenLabel.style.borderRadius = "3px";
     origenLabel.style.pointerEvents = "none";
     origenLabel.style.zIndex = "1000";
     canvas.parentElement.appendChild(origenLabel);
@@ -1192,41 +1234,56 @@ function mostrarAnguloVisual(x1, y1, x2, y2) {
         var angulo = calcularAngulo(x1, y1, x2, y2);
         anguloActual = angulo;
         
+        // Actualizar solo la información en la barra de estado inferior
+        lineInfoElement.textContent = "Longitud: " + 
+            calcularDistancia(x1, y1, x2, y2).toFixed(2) + 
+            " | Ángulo: " + Math.round(angulo) + "°";
+        
+        // Dibujar el ángulo directamente en el canvas
+        ctx.save();
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "12px monospace";
+        
         var puntoMedio = {x: (x1 + x2) / 2, y: (y1 + y2) / 2};
-        anguloVisualElement.style.left = puntoMedio.x + "px";
-        anguloVisualElement.style.top = puntoMedio.y + "px";
-        anguloVisualElement.textContent = Math.round(angulo) + "°";
-        anguloVisualElement.style.display = "block";
+        // Añadir un pequeño desplazamiento para que no esté justo sobre la línea
+        ctx.fillText(Math.round(angulo) + "°", puntoMedio.x + 10, puntoMedio.y - 10);
+        ctx.restore();
+        
+        // Ocultar el elemento flotante
+        anguloVisualElement.style.display = "none";
     } else {
+        // Ocultar el elemento flotante
         anguloVisualElement.style.display = "none";
     }
 }
 
-// Función para mostrar distancia visual
-function mostrarDistanciaVisual(x1, y1, x2, y2) {
-    if (puntoInicial && (modoActual === "linea" || modoActual === "rectangulo" || modoActual === "circulo")) {
-        var distancia = calcularDistancia(x1, y1, x2, y2);
+
+// Función para mostrar ángulo visual
+function mostrarAnguloVisual(x1, y1, x2, y2) {
+    if (puntoInicial && (modoActual === "linea" || modoActual === "rectangulo")) {
+        var angulo = calcularAngulo(x1, y1, x2, y2);
+        anguloActual = angulo;
+        
+        // Actualizar solo la información en la barra de estado inferior
+        lineInfoElement.textContent = "Longitud: " + 
+            calcularDistancia(x1, y1, x2, y2).toFixed(2) + 
+            " | Ángulo: " + Math.round(angulo) + "°";
+        
+        // Dibujar el ángulo directamente en el canvas
+        ctx.save();
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "12px monospace";
+        
         var puntoMedio = {x: (x1 + x2) / 2, y: (y1 + y2) / 2};
+        // Añadir un pequeño desplazamiento para que no esté justo sobre la línea
+        ctx.fillText(Math.round(angulo) + "°", puntoMedio.x + 10, puntoMedio.y - 10);
+        ctx.restore();
         
-        var dx = x2 - x1;
-        var dy = y2 - y1;
-        var longitud = Math.sqrt(dx*dx + dy*dy);
-        
-        if (longitud > 0) {
-            var nx = -dy / longitud;
-            var ny = dx / longitud;
-            puntoMedio.x += nx * 15;
-            puntoMedio.y += ny * 15;
-        } else {
-            puntoMedio.y -= 15;
-        }
-        
-        distanciaVisualElement.style.left = puntoMedio.x + "px";
-        distanciaVisualElement.style.top = puntoMedio.y + "px";
-        distanciaVisualElement.textContent = distancia.toFixed(2) + " px";
-        distanciaVisualElement.style.display = "block";
+        // Ocultar el elemento flotante
+        anguloVisualElement.style.display = "none";
     } else {
-        distanciaVisualElement.style.display = "none";
+        // Ocultar el elemento flotante
+        anguloVisualElement.style.display = "none";
     }
 }
 
@@ -1244,16 +1301,34 @@ function mostrarOrtoVisual(x1, y1, x2, y2) {
         else if (angulo <= 270) refAngulo = 270;
         else refAngulo = 360;
         
-        ortoVisualElement.style.left = (x2 + 60) + "px";
-        ortoVisualElement.style.top = (y2 + 60) + "px";
-        ortoVisualElement.textContent = "Orto: " + distancia.toFixed(2) + " < " + refAngulo + "°";
-        ortoVisualElement.style.display = "block";
+        // Dibujar la información ortogonal directamente en el canvas
+        ctx.save();
+        ctx.fillStyle = "#666666";
+        ctx.font = "12px monospace";
         
-        anguloInfoElement.style.left = (x2 - 20) + "px";
-        anguloInfoElement.style.top = (y2 - 25) + "px";
-        anguloInfoElement.textContent = Math.round(angulo) + "°";
-        anguloInfoElement.style.display = "block";
+        // Dibujar fondo para la información ortogonal
+        var textoOrto = "Orto: " + distancia.toFixed(2) + " < " + refAngulo + "°";
+        var textoOrtoAncho = ctx.measureText(textoOrto).width;
+        ctx.fillRect(x2 + 50, y2 + 50, textoOrtoAncho + 10, 20);
+        
+        ctx.fillStyle = "#ffffff";
+        ctx.fillText(textoOrto, x2 + 55, y2 + 65);
+        
+        // Dibujar fondo para el ángulo info
+        var textoAngulo = Math.round(angulo) + "°";
+        var textoAnguloAncho = ctx.measureText(textoAngulo).width;
+        ctx.fillStyle = "#666666";
+        ctx.fillRect(x2 - 25, y2 - 35, textoAnguloAncho + 10, 20);
+        
+        ctx.fillStyle = "#ffffff";
+        ctx.fillText(textoAngulo, x2 - 20, y2 - 20);
+        ctx.restore();
+        
+        // Ocultar los elementos flotantes
+        ortoVisualElement.style.display = "none";
+        anguloInfoElement.style.display = "none";
     } else {
+        // Ocultar los elementos flotantes
         ortoVisualElement.style.display = "none";
         anguloInfoElement.style.display = "none";
     }
@@ -1507,6 +1582,65 @@ document.getElementById("btnAtajos").addEventListener("click", function() {
 
 document.getElementById("cerrarModalAtajos").addEventListener("click", function() {
     document.getElementById("modalAtajos").style.display = "none";
+});
+
+// Event listener para teclas ESC y F8 como en AutoCAD
+document.addEventListener('keydown', function(e) {
+    // ESC para cancelar la operación actual
+    if (e.key === 'Escape') {
+        // Cancelar el punto inicial si existe
+        if (puntoInicial !== null) {
+            puntoInicial = null;
+            restaurarEstadoCanvas();
+            dibujarPuntosExtremos();
+            
+            // Ocultar indicadores visuales
+            anguloVisualElement.style.display = "none";
+            distanciaVisualElement.style.display = "none";
+            ortoVisualElement.style.display = "none";
+            anguloInfoElement.style.display = "none";
+            
+            mostrarMensajeTemporalEstado("Operación cancelada");
+        }
+        
+        // Cancelar dibujo de polilínea si está en progreso
+        if (dibujarPolilineaEnProgreso) {
+            dibujarPolilineaEnProgreso = false;
+            puntosPolilinea = [];
+            restaurarEstadoCanvas();
+            dibujarPuntosExtremos();
+            mostrarMensajeTemporalEstado("Polilínea cancelada");
+        }
+        
+        // Cancelar dibujo de arco si está en progreso
+        if (dibujarArcoEnProgreso) {
+            dibujarArcoEnProgreso = false;
+            puntosArco = [];
+            restaurarEstadoCanvas();
+            dibujarPuntosExtremos();
+            mostrarMensajeTemporalEstado("Arco cancelado");
+        }
+        
+        // Cerrar menús o modales abiertos
+        document.getElementById("menuSnapObjetos").style.display = "none";
+        document.getElementById("modalAtajos").style.display = "none";
+        document.getElementById("modalImportarSVG").style.display = "none";
+    }
+    
+    // F8 para activar/desactivar restricción de ángulo (ortogonal)
+    if (e.key === 'F8') {
+        e.preventDefault(); // Prevenir el comportamiento predeterminado del navegador para F8
+        restriccionAngulo = !restriccionAngulo;
+        document.getElementById("btnRestriccion").textContent = "Restricción 90° (" + (restriccionAngulo ? "ON" : "OFF") + ")";
+        mostrarMensajeTemporalEstado("Modo ortogonal " + (restriccionAngulo ? "activado" : "desactivado"));
+    }
+    
+    // CTRL+Z para deshacer
+    if (e.key === 'z' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        deshacer();
+        mostrarMensajeTemporalEstado("Acción deshecha");
+    }
 });
 
 // Función para aplicar dimensión manual (faltaba)
