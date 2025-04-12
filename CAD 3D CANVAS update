@@ -459,6 +459,8 @@ const Utilidades = {
 // Módulo para Canvas 2D
 const Canvas2D = {
     inicializar() {
+	/ Añadir console.log para depuración
+        console.log("Iniciando Canvas2D...");
         canvas = document.getElementById("lienzo");
         if (!canvas) {
             console.error("Canvas no encontrado");
@@ -514,67 +516,108 @@ const Canvas2D = {
     },
 
 inicializarConfiguracion() {
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = "#ffffff";
-    ctx.fillStyle = "#ff0000";
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    console.log("Iniciando configuración del Canvas...");
     
-    // Inicializar snapPuntos con el origen
-    snapPuntos = [{ 
-        x: 400, 
-        y: 250, 
-        tipo: "origen", 
-        forma: { tipo: "punto" } 
-    }];
-    
-    // Añadir etiqueta del origen
-    const oldLabel = document.querySelector('.origen-label');
-    if (oldLabel) oldLabel.remove();
-    
-    const origenLabel = document.createElement("div");
-    origenLabel.className = "origen-label";
-    origenLabel.textContent = "Origen (0,0)";
-    Object.assign(origenLabel.style, {
-        position: "absolute",
-        left: "410px",
-        top: "235px",
-        fontFamily: "monospace",
-        fontSize: "12px",
-        color: "yellow",
-        backgroundColor: "rgba(0,0,0,0.6)",
-        padding: "3px 6px",
-        borderRadius: "3px",
-        pointerEvents: "none",
-        zIndex: "1000"
-    });
-    canvas.parentElement.appendChild(origenLabel);
-    
-    // Posicionar el indicador de origen 2D
-    const originIndicator2D = document.getElementById('originIndicator2D');
-    if (originIndicator2D) {
-        originIndicator2D.style.left = '400px';
-        originIndicator2D.style.top = '250px';
-        originIndicator2D.style.display = 'block';
+    try {
+        // Verificación adicional de contexto
+        if (!ctx) {
+            console.error("Contexto del canvas es nulo");
+            return false;
+        }
+
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "#ffffff";
+        ctx.fillStyle = "#ff0000";
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        console.log(`Canvas dimensiones: ${canvas.width} x ${canvas.height}`);
+        
+        // Inicializar snapPuntos con el origen
+        snapPuntos = [{ 
+            x: 400, 
+            y: 250, 
+            tipo: "origen", 
+            forma: { tipo: "punto" } 
+        }];
+        
+        // Añadir etiqueta del origen
+        const oldLabel = document.querySelector('.origen-label');
+        if (oldLabel) oldLabel.remove();
+        
+        const origenLabel = document.createElement("div");
+        origenLabel.className = "origen-label";
+        origenLabel.textContent = "Origen (0,0)";
+        Object.assign(origenLabel.style, {
+            position: "absolute",
+            left: "410px",
+            top: "235px",
+            fontFamily: "monospace",
+            fontSize: "12px",
+            color: "yellow",
+            backgroundColor: "rgba(0,0,0,0.6)",
+            padding: "3px 6px",
+            borderRadius: "3px",
+            pointerEvents: "none",
+            zIndex: "1000"
+        });
+        canvas.parentElement.appendChild(origenLabel);
+        
+        // Posicionar el indicador de origen 2D
+        const originIndicator2D = document.getElementById('originIndicator2D');
+        if (originIndicator2D) {
+            originIndicator2D.style.left = '400px';
+            originIndicator2D.style.top = '250px';
+            originIndicator2D.style.display = 'block';
+        }
+        
+        // Dibujar un punto de prueba en el origen
+        try {
+            ctx.beginPath();
+            ctx.fillStyle = "yellow";
+            ctx.arc(400, 250, 5, 0, Math.PI * 2);
+            ctx.fill();
+            console.log("Punto de origen dibujado correctamente");
+        } catch (drawError) {
+            console.error("Error al dibujar punto de origen:", drawError);
+        }
+        
+        this.dibujarEjesCartesianos();
+        
+        // Activar la rejilla por defecto
+        rejillaActiva = true;
+        const btnRejilla = document.getElementById("btnRejilla");
+        if (btnRejilla) {
+            btnRejilla.textContent = "Rejilla (ON)";
+        }
+        
+        try {
+            this.dibujarRejilla();
+            console.log("Rejilla dibujada correctamente");
+        } catch (rejillaError) {
+            console.error("Error al dibujar rejilla:", rejillaError);
+        }
+        
+        // Inicializar los ejes como un canvas separado
+        this.inicializarEjesCartesianos();
+        
+        // Guardar el estado inicial
+        try {
+            canvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            console.log("Estado inicial guardado correctamente");
+        } catch (stateError) {
+            console.error("Error al guardar estado inicial:", stateError);
+        }
+        
+        Utilidades.mostrarMensajeTemporalEstado("Editor CAD listo");
+        
+        return true;
+    } catch (error) {
+        console.error("Error crítico en inicializarConfiguracion:", error);
+        return false;
     }
-    
-    this.dibujarEjesCartesianos();
-    
-    // Activar la rejilla por defecto
-    rejillaActiva = true;
-    const btnRejilla = document.getElementById("btnRejilla");
-    if (btnRejilla) {
-        btnRejilla.textContent = "Rejilla (ON)";
-    }
-    this.dibujarRejilla();
-    
-    // Inicializar los ejes como un canvas separado
-    this.inicializarEjesCartesianos();
-    
-    // Guardar el estado inicial
-    canvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    Utilidades.mostrarMensajeTemporalEstado("Editor CAD listo");
 },
+
 
 
 // Reemplaza la función inicializarPanoramica con esta versión
@@ -1849,6 +1892,119 @@ const Controles = {
         this.inicializarSnapConfig();
     },
 
+inicializarBotones() {
+    // Botones de herramientas
+    const botones = {
+        btnElipse: () => { 
+            modoActual = "elipse"; 
+            this.activarBoton("btnElipse"); 
+            this.resetearEstadoDibujo();
+        },
+        btnLinea: () => { 
+            modoActual = "linea"; 
+            this.activarBoton("btnLinea"); 
+            this.resetearEstadoDibujo();
+        },
+        btnRectangulo: () => { 
+            modoActual = "rectangulo"; 
+            this.activarBoton("btnRectangulo"); 
+            this.resetearEstadoDibujo();
+        },
+        btnCirculo: () => { 
+            modoActual = "circulo"; 
+            this.activarBoton("btnCirculo"); 
+            this.resetearEstadoDibujo();
+        },
+        btnMano: () => { 
+            modoActual = "mano"; 
+            this.activarBoton("btnMano"); 
+            this.resetearEstadoDibujo();
+        },
+        btnPolilinea: () => { 
+            modoActual = "polilinea"; 
+            this.activarBoton("btnPolilinea"); 
+            this.resetearEstadoDibujo();
+        },
+        btnArco: () => { 
+            modoActual = "arco"; 
+            this.activarBoton("btnArco"); 
+            this.resetearEstadoDibujo();
+        },
+        btnDimension: () => {
+            dimensionManualActiva = !dimensionManualActiva;
+            const btn = document.getElementById("btnDimension");
+            if (btn) btn.classList.toggle("active");
+            if (entradaDimensionesElement) {
+                entradaDimensionesElement.style.display = dimensionManualActiva ? "block" : "none";
+                if (dimensionManualActiva && inputDistanciaElement) inputDistanciaElement.focus();
+            }
+        },
+        btnAplicarDimensiones: () => Dibujo.aplicarDimensionManual(),
+        btnRestriccion: () => {
+            restriccionAngulo = !restriccionAngulo;
+            const btn = document.getElementById("btnRestriccion");
+            if (btn) btn.textContent = `Restricción 90° (${restriccionAngulo ? "ON" : "OFF"})`;
+        },
+        btnSnap: (e) => {
+            e.stopPropagation();
+            snapActivo = !snapActivo;
+            const btn = document.getElementById("btnSnap");
+            if (btn) btn.textContent = `Snap (${snapActivo ? "ON" : "OFF"})`;
+            
+            const menu = document.getElementById("menuSnapObjetos");
+            if (menu) {
+                menu.style.display = menu.style.display === "block" ? "none" : "block";
+                if (menu.style.display === "block" && btn) {
+                    const rect = btn.getBoundingClientRect();
+                    menu.style.left = `${rect.left}px`;
+                    menu.style.top = `${rect.bottom + 5}px`;
+                }
+            }
+        },
+        btnRejilla: () => {
+            rejillaActiva = !rejillaActiva;
+            const btn = document.getElementById("btnRejilla");
+            if (btn) btn.textContent = `Rejilla (${rejillaActiva ? "ON" : "OFF"})`;
+            Canvas2D.restaurarEstado();
+            Canvas2D.dibujarRejilla();
+        },
+        btnSnapGrid: () => {
+            snapToGridActivo = !snapToGridActivo;
+            const btn = document.getElementById("btnSnapGrid");
+            if (btn) btn.textContent = `Snap a Rejilla (${snapToGridActivo ? "ON" : "OFF"})`;
+        },
+        btnDeshacer: () => this.deshacer(),
+        btnLimpiar: () => Canvas2D.resetear(),
+        btnAtajos: () => {
+            const modal = document.getElementById("modalAtajos");
+            if (modal) modal.style.display = "block";
+        },
+        cerrarModalAtajos: () => {
+            const modal = document.getElementById("modalAtajos");
+            if (modal) modal.style.display = "none";
+        }
+    };
+    
+	        // Función para añadir event listeners de forma segura
+        const añadirEventListener = (id, handler) => {
+            const elemento = document.getElementById(id);
+            if (elemento) {
+                elemento.addEventListener("click", handler);
+            } else {
+                console.warn(`Elemento con ID ${id} no encontrado`);
+            }
+        };
+	
+    // Asignar event listeners a todos los botones
+    Object.keys(botones).forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) btn.addEventListener("click", botones[id]);
+    });
+    
+    // Crear botones adicionales
+    this.crearBotonesDinamicos();
+},
+
     inicializarMouseMovimiento() {
     canvas.addEventListener("mousemove", (e) => {
         const rect = canvas.getBoundingClientRect();
@@ -2083,108 +2239,7 @@ inicializarMouseClick() {
     });
 },
 
-inicializarBotones() {
-    // Botones de herramientas
-    const botones = {
-        btnElipse: () => { 
-            modoActual = "elipse"; 
-            this.activarBoton("btnElipse"); 
-            this.resetearEstadoDibujo();
-        },
-        btnLinea: () => { 
-            modoActual = "linea"; 
-            this.activarBoton("btnLinea"); 
-            this.resetearEstadoDibujo();
-        },
-        btnRectangulo: () => { 
-            modoActual = "rectangulo"; 
-            this.activarBoton("btnRectangulo"); 
-            this.resetearEstadoDibujo();
-        },
-        btnCirculo: () => { 
-            modoActual = "circulo"; 
-            this.activarBoton("btnCirculo"); 
-            this.resetearEstadoDibujo();
-        },
-        btnMano: () => { 
-            modoActual = "mano"; 
-            this.activarBoton("btnMano"); 
-            this.resetearEstadoDibujo();
-        },
-        btnPolilinea: () => { 
-            modoActual = "polilinea"; 
-            this.activarBoton("btnPolilinea"); 
-            this.resetearEstadoDibujo();
-        },
-        btnArco: () => { 
-            modoActual = "arco"; 
-            this.activarBoton("btnArco"); 
-            this.resetearEstadoDibujo();
-        },
-        btnDimension: () => {
-            dimensionManualActiva = !dimensionManualActiva;
-            const btn = document.getElementById("btnDimension");
-            if (btn) btn.classList.toggle("active");
-            if (entradaDimensionesElement) {
-                entradaDimensionesElement.style.display = dimensionManualActiva ? "block" : "none";
-                if (dimensionManualActiva && inputDistanciaElement) inputDistanciaElement.focus();
-            }
-        },
-        btnAplicarDimensiones: () => Dibujo.aplicarDimensionManual(),
-        btnRestriccion: () => {
-            restriccionAngulo = !restriccionAngulo;
-            const btn = document.getElementById("btnRestriccion");
-            if (btn) btn.textContent = `Restricción 90° (${restriccionAngulo ? "ON" : "OFF"})`;
-        },
-        btnSnap: (e) => {
-            e.stopPropagation();
-            snapActivo = !snapActivo;
-            const btn = document.getElementById("btnSnap");
-            if (btn) btn.textContent = `Snap (${snapActivo ? "ON" : "OFF"})`;
-            
-            const menu = document.getElementById("menuSnapObjetos");
-            if (menu) {
-                menu.style.display = menu.style.display === "block" ? "none" : "block";
-                if (menu.style.display === "block" && btn) {
-                    const rect = btn.getBoundingClientRect();
-                    menu.style.left = `${rect.left}px`;
-                    menu.style.top = `${rect.bottom + 5}px`;
-                }
-            }
-        },
-        btnRejilla: () => {
-            rejillaActiva = !rejillaActiva;
-            const btn = document.getElementById("btnRejilla");
-            if (btn) btn.textContent = `Rejilla (${rejillaActiva ? "ON" : "OFF"})`;
-            Canvas2D.restaurarEstado();
-            Canvas2D.dibujarRejilla();
-        },
-        btnSnapGrid: () => {
-            snapToGridActivo = !snapToGridActivo;
-            const btn = document.getElementById("btnSnapGrid");
-            if (btn) btn.textContent = `Snap a Rejilla (${snapToGridActivo ? "ON" : "OFF"})`;
-        },
-        btnDeshacer: () => this.deshacer(),
-        btnLimpiar: () => Canvas2D.resetear(),
-        btnAtajos: () => {
-            const modal = document.getElementById("modalAtajos");
-            if (modal) modal.style.display = "block";
-        },
-        cerrarModalAtajos: () => {
-            const modal = document.getElementById("modalAtajos");
-            if (modal) modal.style.display = "none";
-        }
-    };
-    
-    // Asignar event listeners a todos los botones
-    Object.keys(botones).forEach(id => {
-        const btn = document.getElementById(id);
-        if (btn) btn.addEventListener("click", botones[id]);
-    });
-    
-    // Crear botones adicionales
-    this.crearBotonesDinamicos();
-},
+
 
 crearBotonesDinamicos() {
     // Botón para resetear zoom
@@ -2421,32 +2476,44 @@ deshacer() {
 
 // Inicialización de la aplicación
 document.addEventListener("DOMContentLoaded", function() {
-    // Inicializar 2D
-    if (!Canvas2D.inicializar()) {
-        console.error("Error al inicializar el canvas 2D");
-        return;
+    try {
+        // Inicializar 2D
+        if (!Canvas2D.inicializar()) {
+            console.error("Error al inicializar el canvas 2D");
+            Utilidades.mostrarMensajeTemporalEstado("Error al inicializar Canvas 2D");
+            return;
+        }
+        
+        // Inicializar 3D
+        container3D = document.getElementById('container3D');
+        btnToggle3D = document.getElementById('btnToggle3D');
+        if (container3D && btnToggle3D) {
+            Escena3D.inicializar();
+        }
+        
+        // Inicializar controles
+        Controles.inicializar();
+        
+        // Configuración inicial
+        Dibujo.actualizarSnapPuntos();
+        Canvas2D.guardarEstado();
+        
+        // Dibujar rectángulo de prueba para confirmar que funciona
+        ctx.fillStyle = "red";
+        ctx.fillRect(350, 200, 50, 50);
+        console.log("Canvas 2D inicializado correctamente");
+        
+        Utilidades.mostrarMensajeTemporalEstado("Editor CAD inicializado correctamente");
+    } catch (error) {
+        console.error("Error durante la inicialización:", error);
+        Utilidades.mostrarMensajeTemporalEstado("Error al inicializar el editor");
     }
-    
-    // Inicializar 3D
-    container3D = document.getElementById('container3D');
-    btnToggle3D = document.getElementById('btnToggle3D');
-    if (container3D && btnToggle3D) {
-        Escena3D.inicializar();
-    }
-    
-    // Inicializar controles
-    Controles.inicializar();
-    
-    // Configuración inicial
-    Dibujo.actualizarSnapPuntos();
-    Canvas2D.guardarEstado();
-    
-    // Dibujar rectángulo de prueba para confirmar que funciona
-    ctx.fillStyle = "red";
-    ctx.fillRect(350, 200, 50, 50);
-    console.log("Canvas 2D inicializado correctamente");
-    
-    Utilidades.mostrarMensajeTemporalEstado("Editor CAD inicializado correctamente");
+});
+
+// Añadir un manejador global de errores
+window.addEventListener('error', function(event) {
+    console.error("Error no capturado:", event.error);
+    Utilidades.mostrarMensajeTemporalEstado("Ocurrió un error inesperado");
 });
 
 </script>
