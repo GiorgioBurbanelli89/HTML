@@ -1139,20 +1139,41 @@ function dibujarRejilla() {
     ctx.restore();
 }
 
-// Función para guardar estado del canvas
 function guardarEstadoCanvas() {
+    // Guardar la transformación actual
+    const transformacionActual = ctx.getTransform();
+    
+    // Resetear la transformación para capturar la imagen en coordenadas absolutas
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
     canvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    
+    // Gestionar el historial
     if (posicionHistorial < historialEstados.length - 1) {
         historialEstados = historialEstados.slice(0, posicionHistorial + 1);
     }
+    
     historialEstados.push({
         imagen: ctx.getImageData(0, 0, canvas.width, canvas.height),
-        formas: JSON.parse(JSON.stringify(formas))
+        formas: JSON.parse(JSON.stringify(formas)),
+        zoomLevel: zoomLevel,
+        transformacion: {
+            a: transformacionActual.a,
+            b: transformacionActual.b,
+            c: transformacionActual.c,
+            d: transformacionActual.d,
+            e: transformacionActual.e,
+            f: transformacionActual.f
+        }
     });
+    
     if (historialEstados.length > MAX_HISTORIAL) {
         historialEstados.shift();
     }
+    
     posicionHistorial = historialEstados.length - 1;
+    
+    // Restaurar la transformación
+    ctx.setTransform(transformacionActual);
 }
 
 // Función para encontrar snap punto
@@ -1516,21 +1537,38 @@ function mostrarMensajeTemporalEstado(mensaje) {
     }, 1500);
 }
 
-// Función para deshacer
 function deshacer() {
     if (posicionHistorial > 0) {
         posicionHistorial--;
         var estadoAnterior = historialEstados[posicionHistorial];
+        
+        // Guardar la transformación actual
+        const transformacionActual = ctx.getTransform();
+        
+        // Resetear la transformación para dibujar la imagen en coordenadas absolutas
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.putImageData(estadoAnterior.imagen, 0, 0);
+        
+        // Restaurar la lista de formas
         formas = JSON.parse(JSON.stringify(estadoAnterior.formas));
+        
+        // Reaplica el zoom actual
+        ctx.setTransform(transformacionActual);
+        
+        // Actualizar los puntos de snap
         actualizarSnapPuntos();
+        
+        mostrarMensajeTemporalEstado("Acción deshecha");
+    } else {
+        mostrarMensajeTemporalEstado("No hay más acciones para deshacer");
     }
 }
 
 
-
-// Función para aplicar zoom
 function aplicarZoom(canvas, ctx, deltaY, x, y) {
+    console.log("Aplicando zoom...", deltaY); // Debug
+    
     // Calcular nueva escala de zoom
     const escalaAnterior = zoomLevel;
     zoomLevel -= deltaY > 0 ? -ZOOM_SPEED : ZOOM_SPEED;
@@ -1538,39 +1576,27 @@ function aplicarZoom(canvas, ctx, deltaY, x, y) {
     // Limitar zoom
     zoomLevel = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoomLevel));
     
+    console.log("Nuevo nivel de zoom:", zoomLevel); // Debug
+    
     // Coordenadas del ratón relativas al canvas
     const rect = canvas.getBoundingClientRect();
     const mouseX = x - rect.left;
     const mouseY = y - rect.top;
     
-    // Guardar estado actual del canvas
-    const estadoAnterior = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    
-    // Limpiar canvas
+    // Resetear la transformación y limpiar
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Transformación de zoom
-    ctx.save();
+    // Aplicar la nueva transformación
     ctx.translate(mouseX, mouseY);
-    ctx.scale(zoomLevel / escalaAnterior, zoomLevel / escalaAnterior);
+    ctx.scale(zoomLevel, zoomLevel);
     ctx.translate(-mouseX, -mouseY);
     
-    // Restaurar dibujos anteriores con nueva escala
-    ctx.putImageData(estadoAnterior, 0, 0);
-    
-    // Restaurar contexto
-    ctx.restore();
-    
-    // Redibujar ejes y rejilla
+    // Redibujar todo desde cero
     dibujarRejilla();
     dibujarEjesCartesianos(ctx);
     dibujarFormas();
-    
-    // Actualizar información de coordenadas
-    const coordenadasOriginales = {
-        x: (mouseX - 400) / zoomLevel,
-        y: (250 - mouseY) / zoomLevel
-    };
+    dibujarPuntosExtremos();
     
     // Mostrar información de zoom
     const zoomInfoElement = document.createElement('div');
@@ -1589,6 +1615,9 @@ function aplicarZoom(canvas, ctx, deltaY, x, y) {
     
     zoomInfoElement.id = 'zoomInfo';
     canvas.parentElement.appendChild(zoomInfoElement);
+    
+    // Actualizar el estado del canvas
+    canvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
 }
 
 // Añadir evento de zoom al canvas
@@ -1605,25 +1634,33 @@ function agregarZoomCanvas() {
     }, { passive: false });
 }
 
-// Añadir función para resetear zoom
 function resetearZoom() {
+    console.log("Reseteando zoom..."); // Debug
+    
     const canvas = document.getElementById('lienzo');
     const ctx = canvas.getContext('2d');
     
+    // Restaurar transformación original
     zoomLevel = 1;
-    ctx.setTransform(1, 0, 0, 1, 0, 0); // Resetear transformación
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
     
     // Limpiar canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Redibujar todo
+    // Redibujar todo desde cero
     dibujarRejilla();
     dibujarEjesCartesianos(ctx);
     dibujarFormas();
+    dibujarPuntosExtremos();
     
     // Eliminar indicador de zoom
     const zoomInfoElement = document.getElementById('zoomInfo');
     if (zoomInfoElement) zoomInfoElement.remove();
+    
+    // Actualizar el estado del canvas
+    canvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    
+    console.log("Zoom reseteado a 100%"); // Debug
 }
 
 function crearBotonResetZoom() {
@@ -2021,6 +2058,11 @@ inputYElement.addEventListener("keypress", function(e) {
 }  // Cierra la función inicializarCoordenadas()
 // Inicializar controles de zoom
 function inicializarControlesZoom() {
+console.log("Inicializando controles de zoom");
+    console.log("Botón zoomIn:", document.getElementById('zoomIn'));
+    console.log("Botón zoomOut:", document.getElementById('zoomOut'));
+    console.log("Botón zoomFit:", document.getElementById('zoomFit'));
+
     // El botón + para acercar
     document.getElementById('zoomIn').addEventListener('click', function() {
         const canvas = document.getElementById('lienzo');
