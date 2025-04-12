@@ -356,6 +356,8 @@
 // Inicialización de Three.js
 let scene, camera, renderer, controls;
 let escena3DInitializada = false; // Nueva variable
+// Variable global para el elemento de información de coordenadas
+let coord3DInfo = null;
 const container3D = document.getElementById('container3D');
 const btnToggle3D = document.getElementById('btnToggle3D');
 let lineas3D = []; // Nueva variable para almacenar todas las líneas
@@ -375,7 +377,7 @@ let isPanning = false;
 let startPanX, startPanY;
 let lastTranslateX = 0, lastTranslateY = 0;
 
-// Función para inicializar la panorámica en la vista 2D
+// Modificar la función inicializarPanoramica2D para detener la propagación del evento
 function inicializarPanoramica2D() {
     const canvas = document.getElementById('lienzo');
     
@@ -384,6 +386,8 @@ function inicializarPanoramica2D() {
         // Comprobar si es el botón del medio (button = 1)
         if (e.button === 1) {
             e.preventDefault(); // Prevenir comportamiento predeterminado
+            e.stopPropagation(); // Detener la propagación del evento para evitar que active el dibujo
+            
             isPanning = true;
             startPanX = e.clientX;
             startPanY = e.clientY;
@@ -394,7 +398,7 @@ function inicializarPanoramica2D() {
             // Mostrar mensaje
             mostrarMensajeTemporalEstado("Panorámica 2D activada");
         }
-    });
+    }, true); // Usar captura para que este evento se procese antes que otros
     
     // Evento para mover la vista durante la panorámica
     canvas.addEventListener('mousemove', function(e) {
@@ -423,11 +427,18 @@ function inicializarPanoramica2D() {
         
         // Redibujar todo
         redibujaTodo();
+        
+        // Evitar que otros eventos mousemove se activen durante la panorámica
+        e.preventDefault();
+        e.stopPropagation();
     });
     
     // Evento para finalizar la panorámica
     canvas.addEventListener('mouseup', function(e) {
         if (e.button === 1 && isPanning) {
+            e.preventDefault(); // Prevenir comportamiento predeterminado
+            e.stopPropagation(); // Detener propagación
+            
             isPanning = false;
             canvas.style.cursor = 'crosshair'; // Restaurar cursor
             
@@ -455,7 +466,6 @@ function inicializarPanoramica2D() {
         e.preventDefault();
     });
 }
-
 // Función para configurar panorámica en ambas vistas
 function inicializarPanoramicaEnTodasLasVistas() {
     inicializarPanoramica2D();
@@ -558,48 +568,71 @@ function resetearAmbasVistas() {
     }
 }
 
-// Función para inicializar la panorámica en la vista 3D
+// Actualizar la función inicializarPanoramica3D para notificar movimientos
 function inicializarPanoramica3D() {
     if (!escena3DInitializada) return;
     
-    // Configurar los controles de órbita para usar el botón del medio para panorámica
+    // Configurar los controles de órbita
     if (controls) {
-        // Configurar controles para usar el botón del medio para panorámica
-        // THREE.OrbitControls ya tiene soporte para esto, solo necesitamos configurarlo
+        // Definir explícitamente los botones para cada acción
         controls.mouseButtons = {
-            LEFT: THREE.MOUSE.ROTATE,    // Botón izquierdo: rotar
-            MIDDLE: THREE.MOUSE.PAN,     // Botón medio: panorámica
-            RIGHT: THREE.MOUSE.DOLLY     // Botón derecho: zoom
+            LEFT: THREE.MOUSE.ROTATE,     // Botón izquierdo: rotar
+            MIDDLE: THREE.MOUSE.PAN,      // Botón medio: panorámica
+            RIGHT: THREE.MOUSE.DOLLY      // Botón derecho: zoom
         };
         
-        // Activar damping para movimientos más suaves
+        // Configurar comportamiento más suave
         controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
+        controls.dampingFactor = 0.1;
+        controls.panSpeed = 1.0;
+        controls.rotateSpeed = 0.8;
         
-        // Velocidad de panorámica personalizada
-        controls.panSpeed = 0.8;
+        // Prevenir que el usuario gire la cámara demasiado
+        controls.minPolarAngle = 0;
+        controls.maxPolarAngle = Math.PI * 0.85;
+        
+        // Añadir evento cuando cambien los controles para actualizar coordenadas
+        controls.addEventListener('change', function() {
+            actualizarInfoCoordenadas();
+        });
         
         // Actualizar los controles para aplicar los cambios
         controls.update();
     }
     
-    // Añadir evento para mostrar mensajes cuando se usa el botón del medio en 3D
+    // Eventos para movimientos
     container3D.addEventListener('mousedown', function(e) {
         if (e.button === 1) {
+            e.preventDefault();
             mostrarMensajeTemporalEstado("Panorámica 3D activada");
         }
-    });
+    }, true);
+    
+    container3D.addEventListener('mouseup', function(e) {
+        if (e.button === 1) {
+            e.preventDefault();
+            mostrarMensajeTemporalEstado("Panorámica 3D finalizada");
+            actualizarInfoCoordenadas();
+        }
+    }, true);
+    
+    // Evento para zoom con la rueda del mouse
+    container3D.addEventListener('wheel', function() {
+        actualizarInfoCoordenadas();
+    }, { passive: true });
 }
 
+// Función mejorada para inicializar la escena 3D con planos transparentes de coordenadas
 function inicializarEscena3D() {
     if (escena3DInitializada) return;
     
     // Crear escena
     scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x111111); // Fondo oscuro para mejor contraste
 
     // Cambiar a cámara ortográfica para una vista más simétrica
     const aspectRatio = 800 / 500;
-    const viewSize = 10; // Tamaño de la vista
+    const viewSize = 15; // Tamaño de la vista aumentado
     camera = new THREE.OrthographicCamera(
         -viewSize * aspectRatio / 2, // left
         viewSize * aspectRatio / 2,  // right
@@ -610,61 +643,29 @@ function inicializarEscena3D() {
     );
     
     // Configurar renderizador
-    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(800, 500);
-    renderer.setClearColor(0x000000, 1);
+    renderer.setClearColor(0x000000, 0.1); // Fondo semi-transparente
     
     // Posicionar cámara en vista isométrica verdadera
     camera.position.set(10, 10, 10);
     camera.lookAt(0, 0, 0);
     
     // Agregar luces
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7); // Aumentar intensidad
     scene.add(ambientLight);
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
     directionalLight.position.set(5, 5, 5);
     scene.add(directionalLight);
     
-    // Crear plano de referencia XY con rotación para alineación perfecta
-    const planoGeometry = new THREE.PlaneGeometry(20, 20);
-    const planoMaterial = new THREE.MeshBasicMaterial({ 
-        color: 0x404040, 
-        side: THREE.DoubleSide,
-        transparent: true,
-        opacity: 0.1,  // Reducir opacidad
-        wireframe: true
-    });
-    const plano = new THREE.Mesh(planoGeometry, planoMaterial);
-    plano.rotation.x = Math.PI / 2; // Rotar 90 grados para alineación correcta
-    scene.add(plano);
+    // Crear planos de coordenadas transparentes
+    crearPlanosTransparentes();
     
-    // Crear ejes
-    const axesHelper = new THREE.AxesHelper(5);
-    scene.add(axesHelper);
+    // Crear rejilla de referencia mejor
+    crearRejillasReferencia();
     
-    // Crear etiquetas para los ejes (igual que antes)
-    const createAxisLabel = (text, position, color) => {
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-        canvas.width = 64;
-        canvas.height = 64;
-        context.fillStyle = color;
-        context.font = '24px Arial';
-        context.textAlign = 'center';
-        context.textBaseline = 'middle';
-        context.fillText(text, 32, 32);
-        const texture = new THREE.CanvasTexture(canvas);
-        const material = new THREE.SpriteMaterial({ map: texture });
-        const sprite = new THREE.Sprite(material);
-        sprite.position.copy(position);
-        sprite.scale.set(1, 1, 1);
-        scene.add(sprite);
-    };
-    
-    // Agregar etiquetas a los ejes
-    createAxisLabel('X', new THREE.Vector3(5.5, 0, 0), '#ff0000');
-    createAxisLabel('Y', new THREE.Vector3(0, 5.5, 0), '#00ff00');
-    createAxisLabel('Z', new THREE.Vector3(0, 0, 5.5), '#0000ff');
+    // Crear ejes con mejor visualización
+    crearEjesDetallados();
     
     // Indicador de origen
     const origenGeometry = new THREE.SphereGeometry(0.2, 16, 16);
@@ -673,11 +674,196 @@ function inicializarEscena3D() {
     origenSphere.position.set(0, 0, 0);
     scene.add(origenSphere);
     
-    // Etiqueta para el origen
-    createAxisLabel('Origen', new THREE.Vector3(0.5, 0.5, 0.5), '#ffff00');
+    // Sistema de coordenadas flotante que sigue a la cámara
+    crearCoordenadaFlotante();
     
     escena3DInitializada = true;
+    
+    // Mostrar mensaje informativo
+    mostrarMensajeTemporalEstado("Vista 3D inicializada con planos transparentes");
 }
+
+// Función para crear y actualizar la información de coordenadas flotante
+function crearCoordenadaFlotante() {
+    // Crear contenedor para la información si no existe
+    if (!coord3DInfo) {
+        coord3DInfo = document.createElement('div');
+        coord3DInfo.style.position = 'absolute';
+        coord3DInfo.style.bottom = '10px';
+        coord3DInfo.style.left = '10px';
+        coord3DInfo.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+        coord3DInfo.style.color = 'white';
+        coord3DInfo.style.padding = '5px 10px';
+        coord3DInfo.style.borderRadius = '5px';
+        coord3DInfo.style.fontFamily = 'monospace';
+        coord3DInfo.style.fontSize = '12px';
+        coord3DInfo.style.pointerEvents = 'none'; // Para que no interfiera con los clics
+        coord3DInfo.style.zIndex = '1000';
+        coord3DInfo.style.width = 'auto';
+        coord3DInfo.style.whiteSpace = 'nowrap';
+        
+        // Añadir al contenedor 3D
+        container3D.appendChild(coord3DInfo);
+    }
+    
+    // Actualizar el texto inicialmente
+    actualizarInfoCoordenadas();
+}
+
+
+
+// Función para actualizar la información de coordenadas
+function actualizarInfoCoordenadas() {
+    if (!coord3DInfo || !camera) return;
+    
+    const pos = camera.position;
+    coord3DInfo.innerHTML = `
+        <div><strong>Cámara:</strong> X: ${pos.x.toFixed(2)}, Y: ${pos.y.toFixed(2)}, Z: ${pos.z.toFixed(2)}</div>
+        <div><strong>Zoom:</strong> ${zoomLevel.toFixed(2)}x</div>
+    `;
+}
+
+// Función para crear ejes detallados
+function crearEjesDetallados() {
+    // Tamaño de los ejes
+    const longitud = 10;
+    
+    // Función para crear un eje con color y etiqueta
+    function crearEje(origen, destino, color, etiqueta) {
+        // Crear geometría de línea para el eje
+        const geometria = new THREE.BufferGeometry();
+        geometria.setAttribute('position', new THREE.Float32BufferAttribute([
+            origen.x, origen.y, origen.z,
+            destino.x, destino.y, destino.z
+        ], 3));
+        
+        // Crear material para el eje
+        const material = new THREE.LineBasicMaterial({ color: color, linewidth: 3 });
+        
+        // Crear línea para el eje
+        const linea = new THREE.Line(geometria, material);
+        scene.add(linea);
+        
+        // Crear cono para la punta del eje
+        const cono = new THREE.ConeGeometry(0.2, 0.5, 8);
+        const materialCono = new THREE.MeshBasicMaterial({ color: color });
+        const conoPunta = new THREE.Mesh(cono, materialCono);
+        
+        // Posicionar y orientar el cono
+        conoPunta.position.copy(destino);
+        
+        // Orientar el cono según la dirección del eje
+        if (destino.x !== 0) {
+            conoPunta.rotation.z = -Math.PI / 2;
+        } else if (destino.y !== 0) {
+            // No necesita rotación para el eje Y
+        } else if (destino.z !== 0) {
+            conoPunta.rotation.x = Math.PI / 2;
+        }
+        
+        scene.add(conoPunta);
+        
+        // Crear etiqueta para el eje
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = 64;
+        canvas.height = 64;
+        context.fillStyle = color;
+        context.font = '48px Arial';
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        context.fillText(etiqueta, 32, 32);
+        
+        const textura = new THREE.CanvasTexture(canvas);
+        const materialEtiqueta = new THREE.SpriteMaterial({ map: textura });
+        const sprite = new THREE.Sprite(materialEtiqueta);
+        
+        // Posicionar la etiqueta un poco más allá del final del eje
+        const posicionEtiqueta = new THREE.Vector3().copy(destino);
+        posicionEtiqueta.multiplyScalar(1.2); // Un poco más allá
+        sprite.position.copy(posicionEtiqueta);
+        sprite.scale.set(2, 2, 2);
+        
+        scene.add(sprite);
+    }
+    
+    // Crear los tres ejes
+    crearEje(new THREE.Vector3(0, 0, 0), new THREE.Vector3(longitud, 0, 0), '#ff0000', 'X');
+    crearEje(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, longitud, 0), '#00ff00', 'Y');
+    crearEje(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, longitud), '#0088ff', 'Z');
+}
+
+// Función para crear rejillas de referencia mejoradas
+function crearRejillasReferencia() {
+    // Tamaño de las rejillas
+    const tamano = 15;
+    const divisiones = 15;
+    
+    // Rejilla XY
+    const rejillaXY = new THREE.GridHelper(tamano, divisiones, 0x888888, 0x444444);
+    rejillaXY.position.set(0, 0, 0);
+    scene.add(rejillaXY);
+    
+    // Rejilla XZ (necesita rotación)
+    const rejillaXZ = new THREE.GridHelper(tamano, divisiones, 0x888888, 0x444444);
+    rejillaXZ.position.set(0, tamano/2, 0); // Mover a la posición correcta
+    rejillaXZ.rotation.x = Math.PI / 2;
+    scene.add(rejillaXZ);
+    
+    // Rejilla YZ (necesita rotación)
+    const rejillaYZ = new THREE.GridHelper(tamano, divisiones, 0x888888, 0x444444);
+    rejillaYZ.position.set(0, 0, tamano/2); // Mover a la posición correcta
+    rejillaYZ.rotation.z = Math.PI / 2;
+    scene.add(rejillaYZ);
+}
+
+// Función para crear los planos transparentes
+function crearPlanosTransparentes() {
+    // Tamaño de los planos
+    const tamano = 15;
+    
+    // Crear material para el plano XY (azul)
+    const materialXY = new THREE.MeshBasicMaterial({
+        color: 0x0088ff,
+        transparent: true,
+        opacity: 0.15,
+        side: THREE.DoubleSide
+    });
+    
+    // Crear material para el plano XZ (naranja)
+    const materialXZ = new THREE.MeshBasicMaterial({
+        color: 0xff8800,
+        transparent: true,
+        opacity: 0.15,
+        side: THREE.DoubleSide
+    });
+    
+    // Crear material para el plano YZ (verde)
+    const materialYZ = new THREE.MeshBasicMaterial({
+        color: 0x00ff88,
+        transparent: true,
+        opacity: 0.15,
+        side: THREE.DoubleSide
+    });
+    
+    // Geometría común para todos los planos
+    const geometria = new THREE.PlaneGeometry(tamano, tamano);
+    
+    // Plano XY (horizontal)
+    const planoXY = new THREE.Mesh(geometria, materialXY);
+    planoXY.rotation.x = Math.PI / 2; // Rotar para hacerlo horizontal
+    scene.add(planoXY);
+    
+    // Plano XZ (frontal)
+    const planoXZ = new THREE.Mesh(geometria, materialXZ);
+    scene.add(planoXZ);
+    
+    // Plano YZ (lateral)
+    const planoYZ = new THREE.Mesh(geometria, materialYZ);
+    planoYZ.rotation.y = Math.PI / 2; // Rotar para hacerlo vertical
+    scene.add(planoYZ);
+}
+
 
 
 
@@ -818,7 +1004,8 @@ function convert3Dto2D(x3D, y3D) {
             return line;
         }
 
-        btnToggle3D.addEventListener('click', function() {
+        // Reemplazar el evento del botón Toggle 3D para asegurar que se inicialice la panorámica 3D
+btnToggle3D.addEventListener('click', function() {
     if (container3D.style.display === 'none') {
         // Asegurar que la escena esté inicializada
         if (!escena3DInitializada) {
@@ -831,9 +1018,9 @@ function convert3Dto2D(x3D, y3D) {
         
         // Inicializar controles
         controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
-        controls.update();
+        
+        // Importante: configurar la panorámica 3D inmediatamente
+        inicializarPanoramica3D();
         
         // Dibujar todas las líneas que hayan sido creadas en 2D
         for (let i = 0; i < lineas3D.length; i++) {
@@ -850,21 +1037,27 @@ function convert3Dto2D(x3D, y3D) {
         
         // Iniciar animación
         animateScene();
+        
+        // Mostrar mensaje informativo
+        mostrarMensajeTemporalEstado("Vista 3D activada - Use botón del medio para mover la vista");
     } else {
         container3D.style.display = 'none';
         btnToggle3D.textContent = 'Activar Ventana 3D';
+        mostrarMensajeTemporalEstado("Vista 3D desactivada");
     }
 });
 
-// Función de animación separada
+// Modificar la función animateScene para actualizar las coordenadas
 function animateScene() {
     if (container3D.style.display === 'none') return;
     
     requestAnimationFrame(animateScene);
-    if (controls) controls.update();
+    if (controls) {
+        controls.update();
+        actualizarInfoCoordenadas(); // Actualizar coordenadas en cada frame
+    }
     renderer.render(scene, camera);
 }
-
 document.addEventListener("DOMContentLoaded", function() {
     // Declaración de variables
 	inicializarEscena3D();
@@ -1061,8 +1254,17 @@ canvas.addEventListener("mousemove", function(e) {
     }
 });
 
-// Modificar la función mousedown para asegurar que el dibujo sea visible
+// Modificar la función mousedown del canvas para que ignore eventos del botón del medio
 canvas.addEventListener("mousedown", function(e) {
+    // Si es el botón del medio, ignoramos el evento completamente
+    // porque ya lo manejamos en la función de panorámica
+    if (e.button === 1) {
+        return;
+    }
+    
+    // Solo procesamos botón izquierdo (e.button === 0) 
+    // y botón derecho (e.button === 2) si es necesario
+    
     var rect = canvas.getBoundingClientRect();
     var x = e.clientX - rect.left;
     var y = e.clientY - rect.top;
@@ -1151,28 +1353,28 @@ canvas.addEventListener("mousedown", function(e) {
                 });
             }
             
-// Siempre dibujar en 3D, independientemente de si la ventana está visible
-if (modoActual === "linea") {
-    // Añadir a la lista de líneas 3D para mantener registro
-    lineas3D.push({
-        x1: puntoInicial.x,
-        y1: puntoInicial.y,
-        x2: puntoFinal.x,
-        y2: puntoFinal.y,
-        added: false
-    });
-    
-    // Si la escena 3D está inicializada, crear la línea inmediatamente
-    if (escena3DInitializada) {
-        createLine3D(puntoInicial.x, puntoInicial.y, puntoFinal.x, puntoFinal.y);
-        lineas3D[lineas3D.length - 1].added = true;
-    }
-}
-
-puntoInicial = null;
-actualizarSnapPuntos();
-guardarEstadoCanvas();
-dibujarPuntosExtremos();
+            // Siempre dibujar en 3D, independientemente de si la ventana está visible
+            if (modoActual === "linea") {
+                // Añadir a la lista de líneas 3D para mantener registro
+                lineas3D.push({
+                    x1: puntoInicial.x,
+                    y1: puntoInicial.y,
+                    x2: puntoFinal.x,
+                    y2: puntoFinal.y,
+                    added: false
+                });
+                
+                // Si la escena 3D está inicializada, crear la línea inmediatamente
+                if (escena3DInitializada) {
+                    createLine3D(puntoInicial.x, puntoInicial.y, puntoFinal.x, puntoFinal.y);
+                    lineas3D[lineas3D.length - 1].added = true;
+                }
+            }
+            
+            puntoInicial = null;
+            actualizarSnapPuntos();
+            guardarEstadoCanvas();
+            dibujarPuntosExtremos();
         }
     } else if (modoActual === "mano") {
         dibujando = true;
