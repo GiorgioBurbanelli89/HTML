@@ -649,24 +649,27 @@ document.addEventListener("DOMContentLoaded", function() {
     var puntosArco = [];
     var puntosPolilinea = []; 
     var dibujarPolilineaEnProgreso = false;
-    var tiposSnap = {
-        puntoFinal: true,
-        puntoMedio: true,
-        centro: true,
-        centroGeometrico: false,
-        punto: true,
-        cuadrante: true,
-        interseccion: false,
-        extension: false,
-        insercion: false,
-        perpendicular: false,
-        tangente: false,
-        cercano: false,
-        interseccionFicticia: false,
-        paralelo: false
-		agregarZoomCanvas();
-		crearBotonResetZoom();
-    };
+    // Cambialo a:
+var tiposSnap = {
+    puntoFinal: true,
+    puntoMedio: true,
+    centro: true,
+    centroGeometrico: false,
+    punto: true,
+    cuadrante: true,
+    interseccion: false,
+    extension: false,
+    insercion: false,
+    perpendicular: false,
+    tangente: false,
+    cercano: false,
+    interseccionFicticia: false,
+    paralelo: false
+};
+
+// Y luego pon estas funciones fuera del objeto:
+agregarZoomCanvas();
+crearBotonResetZoom();
     
     var canvas = document.getElementById("lienzo");
     var ctx = canvas.getContext("2d");
@@ -723,6 +726,25 @@ anguloInfoElement.style.color = "white";
 anguloInfoElement.style.padding = "2px 5px";
 anguloInfoElement.style.borderRadius = "3px";
 canvas.parentElement.appendChild(anguloInfoElement);
+
+function mostrarDistanciaVisual(x1, y1, x2, y2) {
+    if (puntoInicial) {
+        var distancia = calcularDistancia(x1, y1, x2, y2);
+        
+        // Posicionar el elemento de distancia visual
+        var puntoMedio = {
+            x: (x1 + x2) / 2,
+            y: (y1 + y2) / 2
+        };
+        
+        distanciaVisualElement.style.left = puntoMedio.x + "px";
+        distanciaVisualElement.style.top = (puntoMedio.y - 20) + "px";
+        distanciaVisualElement.textContent = distancia.toFixed(2);
+        distanciaVisualElement.style.display = "block";
+    } else {
+        distanciaVisualElement.style.display = "none";
+    }
+}
 
 // Función para iniciar dibujo (corregida)
 function iniciarDibujoEn(x, y) {
@@ -936,6 +958,12 @@ dibujarPuntosExtremos();
         yAnterior = y;
     }
 });
+
+function dibujarElipse(ctx, x, y, radiusX, radiusY) {
+    ctx.beginPath();
+    ctx.ellipse(x, y, radiusX, radiusY, 0, 0, Math.PI * 2);
+    ctx.stroke();
+}
 
 function inicializarConfiguracion() {
     // Configuración inicial del contexto
