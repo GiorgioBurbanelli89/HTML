@@ -683,7 +683,7 @@ function inicializarEscena3D() {
     mostrarMensajeTemporalEstado("Vista 3D inicializada con planos transparentes");
 }
 
-// Función para crear y actualizar la información de coordenadas flotante
+// Verificar esta función para el panel de coordenadas
 function crearCoordenadaFlotante() {
     // Crear contenedor para la información si no existe
     if (!coord3DInfo) {
@@ -709,7 +709,6 @@ function crearCoordenadaFlotante() {
     // Actualizar el texto inicialmente
     actualizarInfoCoordenadas();
 }
-
 
 
 // Función para actualizar la información de coordenadas
@@ -817,7 +816,7 @@ function crearRejillasReferencia() {
     scene.add(rejillaYZ);
 }
 
-// Función para crear los planos transparentes
+// Función para crear los planos transparentes mejorada
 function crearPlanosTransparentes() {
     // Tamaño de los planos
     const tamano = 15;
@@ -827,7 +826,9 @@ function crearPlanosTransparentes() {
         color: 0x0088ff,
         transparent: true,
         opacity: 0.15,
-        side: THREE.DoubleSide
+        side: THREE.DoubleSide,
+        depthWrite: false, // Importante para transparencia correcta
+        blending: THREE.NormalBlending
     });
     
     // Crear material para el plano XZ (naranja)
@@ -835,7 +836,9 @@ function crearPlanosTransparentes() {
         color: 0xff8800,
         transparent: true,
         opacity: 0.15,
-        side: THREE.DoubleSide
+        side: THREE.DoubleSide,
+        depthWrite: false,
+        blending: THREE.NormalBlending
     });
     
     // Crear material para el plano YZ (verde)
@@ -843,7 +846,9 @@ function crearPlanosTransparentes() {
         color: 0x00ff88,
         transparent: true,
         opacity: 0.15,
-        side: THREE.DoubleSide
+        side: THREE.DoubleSide,
+        depthWrite: false,
+        blending: THREE.NormalBlending
     });
     
     // Geometría común para todos los planos
@@ -852,15 +857,18 @@ function crearPlanosTransparentes() {
     // Plano XY (horizontal)
     const planoXY = new THREE.Mesh(geometria, materialXY);
     planoXY.rotation.x = Math.PI / 2; // Rotar para hacerlo horizontal
+    planoXY.renderOrder = 1; // Asegurar que se renderice después de otros objetos
     scene.add(planoXY);
     
     // Plano XZ (frontal)
     const planoXZ = new THREE.Mesh(geometria, materialXZ);
+    planoXZ.renderOrder = 2;
     scene.add(planoXZ);
     
     // Plano YZ (lateral)
     const planoYZ = new THREE.Mesh(geometria, materialYZ);
     planoYZ.rotation.y = Math.PI / 2; // Rotar para hacerlo vertical
+    planoYZ.renderOrder = 3;
     scene.add(planoYZ);
 }
 
@@ -895,81 +903,7 @@ btnReiniciarVista3D.style.marginTop = '10px';
 btnReiniciarVista3D.addEventListener('click', reiniciarVista3D);
 document.body.appendChild(btnReiniciarVista3D);
 
-        function init3D() {
-            // Crear escena, cámara y renderizador
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(75, container3D.clientWidth / container3D.clientHeight, 0.1, 1000);
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(container3D.clientWidth, container3D.clientHeight);
-            renderer.setClearColor(0x000000, 1);
-            container3D.appendChild(renderer.domElement);
-
-            // Configurar la cámara en posición isométrica
-            camera.position.set(5, 5, 5);
-            camera.lookAt(0, 0, 0);
-
-            // Agregar controles de cámara
-            controls = new THREE.OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-            controls.dampingFactor = 0.05;
-            controls.update();
-
-            // Agregar luces
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-            scene.add(ambientLight);
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
-            directionalLight.position.set(5, 5, 5);
-            scene.add(directionalLight);
-
-            // Crear plano de referencia XY
-            const planoGeometry = new THREE.PlaneGeometry(10, 10);
-            const planoMaterial = new THREE.MeshBasicMaterial({ 
-                color: 0x404040, 
-                side: THREE.DoubleSide,
-                transparent: true,
-                opacity: 0.2,
-                wireframe: true
-            });
-            const plano = new THREE.Mesh(planoGeometry, planoMaterial);
-            scene.add(plano);
-
-            // Crear ejes
-            const axesHelper = new THREE.AxesHelper(5);
-            scene.add(axesHelper);
-
-            // Crear etiquetas para los ejes
-            const createAxisLabel = (text, position, color) => {
-                const canvas = document.createElement('canvas');
-                const context = canvas.getContext('2d');
-                canvas.width = 64;
-                canvas.height = 64;
-                context.fillStyle = color;
-                context.font = '24px Arial';
-                context.textAlign = 'center';
-                context.textBaseline = 'middle';
-                context.fillText(text, 32, 32);
-
-                const texture = new THREE.CanvasTexture(canvas);
-                const material = new THREE.SpriteMaterial({ map: texture });
-                const sprite = new THREE.Sprite(material);
-                sprite.position.copy(position);
-                sprite.scale.set(1, 1, 1);
-                scene.add(sprite);
-            };
-
-            // Agregar etiquetas a los ejes
-            createAxisLabel('X', new THREE.Vector3(5.5, 0, 0), '#ff0000');
-            createAxisLabel('Y', new THREE.Vector3(0, 5.5, 0), '#00ff00');
-            createAxisLabel('Z', new THREE.Vector3(0, 0, 5.5), '#0000ff');
-
-            // Función de animación
-            function animate() {
-                requestAnimationFrame(animate);
-                controls.update();
-                renderer.render(scene, camera);
-            }
-            animate();
-        }
+        
 
        // Actualizar función de conversión 2D a 3D
 function convert2Dto3D(x, y) {
@@ -1448,8 +1382,8 @@ function dibujarEjesCartesianos(ctx) {
     // Guardar el estado actual del contexto
     ctx.save();
     
-    // Establecer estilos para los ejes
-    ctx.lineWidth = 1;
+    // Establecer estilos para los ejes con mayor contraste
+    ctx.lineWidth = 2; // Aumentar grosor
     
     // Dibujar eje X (rojo)
     ctx.beginPath();
@@ -1465,10 +1399,10 @@ function dibujarEjesCartesianos(ctx) {
     ctx.lineTo(400, 500);
     ctx.stroke();
     
-    // Dibujar origen
+    // Dibujar origen con mayor tamaño
     ctx.beginPath();
     ctx.fillStyle = "#ffff00";
-    ctx.arc(400, 250, 5, 0, Math.PI * 2);
+    ctx.arc(400, 250, 6, 0, Math.PI * 2);
     ctx.fill();
     
     // Restaurar el contexto
@@ -1758,34 +1692,6 @@ function dibujarPuntosExtremos() {
     ctx.restore();
 }
 
-// Función para mostrar ángulo visual
-function mostrarAnguloVisual(x1, y1, x2, y2) {
-    if (puntoInicial && (modoActual === "linea" || modoActual === "rectangulo")) {
-        var angulo = calcularAngulo(x1, y1, x2, y2);
-        anguloActual = angulo;
-        
-        // Actualizar solo la información en la barra de estado inferior
-        lineInfoElement.textContent = "Longitud: " + 
-            calcularDistancia(x1, y1, x2, y2).toFixed(2) + 
-            " | Ángulo: " + Math.round(angulo) + "°";
-        
-        // Dibujar el ángulo directamente en el canvas
-        ctx.save();
-        ctx.fillStyle = "#ffffff";
-        ctx.font = "12px monospace";
-        
-        var puntoMedio = {x: (x1 + x2) / 2, y: (y1 + y2) / 2};
-        // Añadir un pequeño desplazamiento para que no esté justo sobre la línea
-        ctx.fillText(Math.round(angulo) + "°", puntoMedio.x + 10, puntoMedio.y - 10);
-        ctx.restore();
-        
-        // Ocultar el elemento flotante
-        anguloVisualElement.style.display = "none";
-    } else {
-        // Ocultar el elemento flotante
-        anguloVisualElement.style.display = "none";
-    }
-}
 
 
 // Función para mostrar ángulo visual
