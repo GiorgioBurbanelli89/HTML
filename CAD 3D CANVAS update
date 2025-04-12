@@ -459,7 +459,7 @@ const Utilidades = {
 // Módulo para Canvas 2D
 const Canvas2D = {
     inicializar() {
-	/ Añadir console.log para depuración
+	// Añadir console.log para depuración
         console.log("Iniciando Canvas2D...");
         canvas = document.getElementById("lienzo");
         if (!canvas) {
@@ -514,6 +514,28 @@ const Canvas2D = {
         this.inicializarZoom();
         return true;
     },
+
+// Función para inicializar manualmente
+ inicializarManualmente() {
+    console.log("Inicializando manualmente...");
+    try {
+        // Intenta inicializar el canvas 2D
+        if (Canvas2D && typeof Canvas2D.inicializar === 'function') {
+            console.log("Llamando a Canvas2D.inicializar()");
+            Canvas2D.inicializar();
+        } else {
+            console.error("Canvas2D no está definido o inicializar no es una función");
+        }
+        
+        // Intenta inicializar los controles
+        if (Controles && typeof Controles.inicializar === 'function') {
+            console.log("Llamando a Controles.inicializar()");
+            Controles.inicializar();
+        }
+    } catch (e) {
+        console.error("Error durante la inicialización manual:", e);
+    }
+},
 
 inicializarConfiguracion() {
     console.log("Iniciando configuración del Canvas...");
@@ -620,95 +642,107 @@ inicializarConfiguracion() {
 
 
 
-// Reemplaza la función inicializarPanoramica con esta versión
 inicializarPanoramica() {
-    // Variable para almacenar el estado original
-    let originalState = null;
+    // Referencia a las formas originales
+    let formasOriginales = null;
     
     canvas.addEventListener('mousedown', (e) => {
-        if (e.button === 1) {
+        if (e.button === 1) { // Botón del medio
             e.preventDefault();
-            e.stopPropagation();
             
-            // Guardar el estado original al iniciar la panorámica
-            originalState = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            // GUARDAR LAS FORMAS ORIGINALES (copia profunda)
+            formasOriginales = JSON.parse(JSON.stringify(formas));
             
             isPanning = true;
             startPanX = e.clientX;
             startPanY = e.clientY;
+            startTranslateX = lastTranslateX;
+            startTranslateY = lastTranslateY;
             canvas.style.cursor = 'grabbing';
-            Utilidades.mostrarMensajeTemporalEstado("Panorámica 2D activada");
         }
-    }, true);
-
+    });
+    
     canvas.addEventListener('mousemove', (e) => {
         if (!isPanning) return;
         
-        // Calcular el desplazamiento desde el inicio de la panorámica
+        // Calcular desplazamiento TOTAL desde el inicio
         const dx = e.clientX - startPanX;
         const dy = e.clientY - startPanY;
         
-        // Actualizar puntos para el próximo movimiento
-        startPanX = e.clientX;
-        startPanY = e.clientY;
+        // Actualizar posición (absoluta, no incremental)
+        lastTranslateX = startTranslateX + dx;
+        lastTranslateY = startTranslateY + dy;
         
-        // Actualizar las variables acumuladas
-        lastTranslateX += dx;
-        lastTranslateY += dy;
-        
-        // Limpiar el canvas
+        // Resetear completamente el canvas y dibujar todo desde cero
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // Restaurar el estado original si existe
-        if (originalState) {
-            ctx.putImageData(originalState, 0, 0);
-        }
-        
-        // Aplicar la transformación de panorámica
         ctx.setTransform(zoomLevel, 0, 0, zoomLevel, lastTranslateX, lastTranslateY);
         
-        // Actualizar el indicador de origen
-        this.actualizarIndicadorOrigen();
-        
-        e.preventDefault();
-        e.stopPropagation();
+        // Forzar renderizado con formas originales
+        if (formasOriginales) {
+            // Reemplazar temporalmente las formas para dibujar
+            const formasPrevias = formas;
+            formas = formasOriginales;
+            
+            // Dibujar sin modificar las formas
+            this.dibujarRejilla();
+            this.dibujarEjesCartesianos();
+            this.dibujarFormas();
+            
+            // Restaurar formas originales
+            formas = formasPrevias;
+        }
     });
-
+    
     canvas.addEventListener('mouseup', (e) => {
         if (e.button === 1 && isPanning) {
-            e.preventDefault();
-            e.stopPropagation();
             isPanning = false;
             canvas.style.cursor = 'crosshair';
             
-            // Guardar el nuevo estado después de la panorámica
+            // IMPORTANTE: No modificar el array de formas
+            // Solo actualizar la transformación
+            
             canvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            this.guardarEstado();
-            
-            // Limpiar la referencia al estado original
-            originalState = null;
-            
-            Utilidades.mostrarMensajeTemporalEstado("Panorámica 2D finalizada");
+            formasOriginales = null;
         }
     });
-
-    canvas.addEventListener('mouseleave', () => {
-        if (isPanning) {
-            isPanning = false;
-            canvas.style.cursor = 'crosshair';
-            
-            // Guardar estado y limpiar referencias
-            canvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            this.guardarEstado();
-            originalState = null;
-        }
-    });
-
+    
     canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 },
 
-inicializarEjesCartesianos
+// Reemplaza la línea suelta "inicializarEjesCartesianos" con una definición de función completa:
+inicializarEjesCartesianos() {
+    console.log("Inicializando ejes cartesianos");
+    
+    // Dibujar el origen con más detalle
+    ctx.save();
+    
+    // Dibujar un pequeño cuadrado en el origen
+    ctx.fillStyle = "#ffffff";
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.rect(398, 248, 4, 4);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Añadir etiqueta "0,0,0" cerca del origen
+    ctx.font = "12px monospace";
+    ctx.fillStyle = "#00ffff";
+    ctx.fillText("0,0,0", 405, 245);
+    
+    // Dibujar un círculo pequeño alrededor del origen
+    ctx.beginPath();
+    ctx.strokeStyle = "#ffff00";
+    ctx.arc(400, 250, 8, 0, Math.PI * 2);
+    ctx.stroke();
+    
+    ctx.restore();
+},
+
+
+
+
 
 // Modifica también la función redibujaTodo para asegurar que solo dibuja una vez
 redibujaTodo() {
@@ -783,10 +817,9 @@ dibujarEjesCartesianosEnContexto(contexto) {
     contexto.restore();
 },
 
-// Modifica la función dibujarEjesCartesianos para que no haga nada
 dibujarEjesCartesianos() {
-    // Esta función ahora no hace nada, ya que los ejes están en un canvas separado
-    return;
+    // En vez de dibujar ejes simples, llamar a la función detallada
+    this.dibujarEjesCartesianosEnContexto(ctx);
 },
 
     inicializarZoom() {
@@ -879,13 +912,15 @@ dibujarEjesCartesianos() {
     },
 
     redibujaTodo() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        this.dibujarRejilla();
-        this.dibujarEjesCartesianos();
-        this.dibujarFormas();
-        this.dibujarPuntosExtremos();
-        this.actualizarIndicadorOrigen();
-    },
+    // Código de limpieza igual...
+    
+    // Dibuja los elementos en el orden correcto
+    if (rejillaActiva) this.dibujarRejilla();
+    this.dibujarEjesCartesianosEnContexto(ctx); // Cambiar a la función detallada
+    this.dibujarFormas();
+    this.dibujarPuntosExtremos();
+    this.actualizarIndicadorOrigen();
+},
 
 
     dibujarRejilla() {
@@ -2515,7 +2550,7 @@ window.addEventListener('error', function(event) {
     console.error("Error no capturado:", event.error);
     Utilidades.mostrarMensajeTemporalEstado("Ocurrió un error inesperado");
 });
-
+setTimeout(inicializarManualmente, 1000);
 </script>
 </body>
 </html>
