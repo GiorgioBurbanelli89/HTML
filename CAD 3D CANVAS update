@@ -369,6 +369,228 @@ let zoomLevel = 1;
 const MIN_ZOOM = 0.1;
 const MAX_ZOOM = 5;
 const ZOOM_SPEED = 0.1;
+
+// Variables para el desplazamiento (panorámica) en 2D
+let isPanning = false;
+let startPanX, startPanY;
+let lastTranslateX = 0, lastTranslateY = 0;
+
+// Función para inicializar la panorámica en la vista 2D
+function inicializarPanoramica2D() {
+    const canvas = document.getElementById('lienzo');
+    
+    // Evento para iniciar la panorámica al presionar el botón del medio
+    canvas.addEventListener('mousedown', function(e) {
+        // Comprobar si es el botón del medio (button = 1)
+        if (e.button === 1) {
+            e.preventDefault(); // Prevenir comportamiento predeterminado
+            isPanning = true;
+            startPanX = e.clientX;
+            startPanY = e.clientY;
+            
+            // Cambiar el cursor para indicar que se está moviendo
+            canvas.style.cursor = 'grabbing';
+            
+            // Mostrar mensaje
+            mostrarMensajeTemporalEstado("Panorámica 2D activada");
+        }
+    });
+    
+    // Evento para mover la vista durante la panorámica
+    canvas.addEventListener('mousemove', function(e) {
+        if (!isPanning) return;
+        
+        // Calcular el desplazamiento
+        const dx = e.clientX - startPanX;
+        const dy = e.clientY - startPanY;
+        
+        // Actualizar puntos de inicio para el próximo movimiento
+        startPanX = e.clientX;
+        startPanY = e.clientY;
+        
+        // Actualizar las variables de desplazamiento acumulado
+        lastTranslateX += dx;
+        lastTranslateY += dy;
+        
+        // Obtener la transformación actual
+        const transform = ctx.getTransform();
+        
+        // Aplicar la nueva transformación
+        ctx.setTransform(
+            transform.a, transform.b, transform.c, 
+            transform.d, transform.e + dx, transform.f + dy
+        );
+        
+        // Redibujar todo
+        redibujaTodo();
+    });
+    
+    // Evento para finalizar la panorámica
+    canvas.addEventListener('mouseup', function(e) {
+        if (e.button === 1 && isPanning) {
+            isPanning = false;
+            canvas.style.cursor = 'crosshair'; // Restaurar cursor
+            
+            // Guardar el estado del canvas después de la panorámica
+            guardarEstadoCanvas();
+            
+            // Mostrar mensaje
+            mostrarMensajeTemporalEstado("Panorámica 2D finalizada");
+        }
+    });
+    
+    // Evento para finalizar la panorámica si el cursor sale del canvas
+    canvas.addEventListener('mouseleave', function() {
+        if (isPanning) {
+            isPanning = false;
+            canvas.style.cursor = 'crosshair'; // Restaurar cursor
+            
+            // Guardar el estado del canvas después de la panorámica
+            guardarEstadoCanvas();
+        }
+    });
+    
+    // Evitar que el navegador muestre su menú contextual al hacer clic con el botón derecho
+    canvas.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+    });
+}
+
+// Función para configurar panorámica en ambas vistas
+function inicializarPanoramicaEnTodasLasVistas() {
+    inicializarPanoramica2D();
+    
+    // Si la vista 3D ya está inicializada, configurar también su panorámica
+    if (escena3DInitializada) {
+        inicializarPanoramica3D();
+    }
+    
+    // Sobrescribir la función toggle3D para asegurarnos de que se inicialice la panorámica 
+    // cuando se active la vista 3D
+    const originalToggle3D = btnToggle3D.onclick || function(){};
+    btnToggle3D.onclick = function(e) {
+        // Llamar a la función original primero
+        originalToggle3D.call(this, e);
+        
+        // Si ahora está visible, configurar la panorámica 3D
+        if (container3D.style.display !== 'none') {
+            inicializarPanoramica3D();
+        }
+    };
+}
+
+// Función para redibujar todo el canvas 2D
+function redibujaTodo() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    dibujarRejilla();
+    dibujarEjesCartesianos(ctx);
+    dibujarFormas();
+    dibujarPuntosExtremos();
+    
+    // Actualizar la posición del indicador de origen
+    actualizarIndicadorOrigen();
+}
+
+// Función para actualizar la posición del indicador de origen
+function actualizarIndicadorOrigen() {
+    const originIndicator = document.getElementById('originIndicator2D');
+    if (!originIndicator) return;
+    
+    // Calcular la posición del origen (0,0) en coordenadas del canvas después de la transformación
+    const transform = ctx.getTransform();
+    const originX = transform.e + 400 * transform.a; // 400 es la posición X del origen en el canvas
+    const originY = transform.f + 250 * transform.d; // 250 es la posición Y del origen en el canvas
+    
+    // Actualizar la posición del indicador
+    originIndicator.style.left = `${originX}px`;
+    originIndicator.style.top = `${originY}px`;
+}
+
+// Función para resetear la panorámica en 2D
+function resetearPanoramica2D() {
+    lastTranslateX = 0;
+    lastTranslateY = 0;
+    
+    // Obtener la transformación actual
+    const transform = ctx.getTransform();
+    
+    // Restablecer solo la parte de translación, manteniendo el zoom
+    ctx.setTransform(
+        transform.a, transform.b, transform.c, 
+        transform.d, 0, 0
+    );
+    
+    // Redibujar todo
+    redibujaTodo();
+    
+    // Guardar el estado del canvas
+    guardarEstadoCanvas();
+    
+    // Mostrar mensaje
+    mostrarMensajeTemporalEstado("Vista 2D centrada");
+}
+
+// Función para resetear la vista 3D (panorámica y rotación)
+function resetearVista3D() {
+    if (!escena3DInitializada || !controls) return;
+    
+    // Restablecer la posición de la cámara
+    camera.position.set(5, 5, 5);
+    camera.lookAt(0, 0, 0);
+    
+    // Resetear los controles de órbita
+    controls.reset();
+    
+    // Forzar una actualización
+    controls.update();
+    renderer.render(scene, camera);
+    
+    // Mostrar mensaje
+    mostrarMensajeTemporalEstado("Vista 3D reseteada");
+}
+
+// Función para resetear tanto la vista 2D como la 3D
+function resetearAmbasVistas() {
+    resetearPanoramica2D();
+    
+    if (container3D.style.display !== 'none') {
+        resetearVista3D();
+    }
+}
+
+// Función para inicializar la panorámica en la vista 3D
+function inicializarPanoramica3D() {
+    if (!escena3DInitializada) return;
+    
+    // Configurar los controles de órbita para usar el botón del medio para panorámica
+    if (controls) {
+        // Configurar controles para usar el botón del medio para panorámica
+        // THREE.OrbitControls ya tiene soporte para esto, solo necesitamos configurarlo
+        controls.mouseButtons = {
+            LEFT: THREE.MOUSE.ROTATE,    // Botón izquierdo: rotar
+            MIDDLE: THREE.MOUSE.PAN,     // Botón medio: panorámica
+            RIGHT: THREE.MOUSE.DOLLY     // Botón derecho: zoom
+        };
+        
+        // Activar damping para movimientos más suaves
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        
+        // Velocidad de panorámica personalizada
+        controls.panSpeed = 0.8;
+        
+        // Actualizar los controles para aplicar los cambios
+        controls.update();
+    }
+    
+    // Añadir evento para mostrar mensajes cuando se usa el botón del medio en 3D
+    container3D.addEventListener('mousedown', function(e) {
+        if (e.button === 1) {
+            mostrarMensajeTemporalEstado("Panorámica 3D activada");
+        }
+    });
+}
+
 function inicializarEscena3D() {
     if (escena3DInitializada) return;
     
@@ -1537,33 +1759,146 @@ function mostrarMensajeTemporalEstado(mensaje) {
     }, 1500);
 }
 
+// Función para actualizar el array de líneas 3D basado en las formas actuales
+function actualizarLineas3D() {
+    // Reiniciar el array de líneas 3D
+    lineas3D = [];
+    
+    // Recorrer todas las formas y agregar las líneas al array
+    for (let i = 0; i < formas.length; i++) {
+        const forma = formas[i];
+        if (forma.tipo === "linea") {
+            lineas3D.push({
+                x1: forma.x1,
+                y1: forma.y1,
+                x2: forma.x2,
+                y2: forma.y2,
+                added: false // Marcar como no añadido para que se pueda añadir de nuevo si es necesario
+            });
+        }
+    }
+    
+    // Si la escena 3D está inicializada y visible, actualizar la visualización 3D
+    if (escena3DInitializada && container3D.style.display !== 'none') {
+        actualizarVisualizacion3D();
+    }
+}
+
+// Función para actualizar la visualización 3D
+function actualizarVisualizacion3D() {
+    // Limpiar todas las líneas existentes en la escena
+    scene.children.forEach(child => {
+        if (child instanceof THREE.Line) {
+            scene.remove(child);
+        }
+    });
+    
+    // Volver a crear todas las líneas en 3D
+    for (let i = 0; i < lineas3D.length; i++) {
+        const linea = lineas3D[i];
+        createLine3D(linea.x1, linea.y1, linea.x2, linea.y2);
+        linea.added = true;
+    }
+    
+    // Renderizar la escena
+    if (renderer) {
+        renderer.render(scene, camera);
+    }
+}
+
+// Función para actualizar la información de zoom
+function actualizarInfoZoom() {
+    const zoomInfoElement = document.getElementById('zoomInfo');
+    if (zoomInfoElement) {
+        zoomInfoElement.textContent = `Zoom: ${(zoomLevel * 100).toFixed(0)}%`;
+    } else {
+        // Crear un nuevo elemento de información de zoom si no existe
+        const nuevoZoomInfo = document.createElement('div');
+        nuevoZoomInfo.id = 'zoomInfo';
+        nuevoZoomInfo.style.position = 'absolute';
+        nuevoZoomInfo.style.top = '10px';
+        nuevoZoomInfo.style.left = '10px';
+        nuevoZoomInfo.style.backgroundColor = 'rgba(0,0,0,0.7)';
+        nuevoZoomInfo.style.color = 'white';
+        nuevoZoomInfo.style.padding = '5px';
+        nuevoZoomInfo.style.borderRadius = '3px';
+        nuevoZoomInfo.textContent = `Zoom: ${(zoomLevel * 100).toFixed(0)}%`;
+        
+        canvas.parentElement.appendChild(nuevoZoomInfo);
+    }
+}
+
+// Función para deshacer corregida
 function deshacer() {
     if (posicionHistorial > 0) {
         posicionHistorial--;
         var estadoAnterior = historialEstados[posicionHistorial];
         
-        // Guardar la transformación actual
-        const transformacionActual = ctx.getTransform();
+        // Restablecer el nivel de zoom al valor guardado
+        zoomLevel = estadoAnterior.zoomLevel || zoomLevel;
         
-        // Resetear la transformación para dibujar la imagen en coordenadas absolutas
+        // Limpiar completamente el canvas
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Restaurar la imagen del estado anterior
         ctx.putImageData(estadoAnterior.imagen, 0, 0);
         
         // Restaurar la lista de formas
         formas = JSON.parse(JSON.stringify(estadoAnterior.formas));
         
-        // Reaplica el zoom actual
-        ctx.setTransform(transformacionActual);
+        // También actualizar el array de líneas 3D para mantener sincronizados 2D y 3D
+        actualizarLineas3D();
         
-        // Actualizar los puntos de snap
+        // Restaurar la transformación guardada
+        if (estadoAnterior.transformacion) {
+            ctx.setTransform(
+                estadoAnterior.transformacion.a,
+                estadoAnterior.transformacion.b,
+                estadoAnterior.transformacion.c,
+                estadoAnterior.transformacion.d,
+                estadoAnterior.transformacion.e,
+                estadoAnterior.transformacion.f
+            );
+        }
+        
+        // Actualizar los puntos de snap después de restaurar el estado
         actualizarSnapPuntos();
+        
+        // Actualizar la información del zoom
+        actualizarInfoZoom();
         
         mostrarMensajeTemporalEstado("Acción deshecha");
     } else {
         mostrarMensajeTemporalEstado("No hay más acciones para deshacer");
     }
 }
+
+// Función para actualizar el array de líneas 3D basado en las formas actuales
+function actualizarLineas3D() {
+    // Reiniciar el array de líneas 3D
+    lineas3D = [];
+    
+    // Recorrer todas las formas y agregar las líneas al array
+    for (let i = 0; i < formas.length; i++) {
+        const forma = formas[i];
+        if (forma.tipo === "linea") {
+            lineas3D.push({
+                x1: forma.x1,
+                y1: forma.y1,
+                x2: forma.x2,
+                y2: forma.y2,
+                added: false // Marcar como no añadido para que se pueda añadir de nuevo si es necesario
+            });
+        }
+    }
+    
+    // Si la escena 3D está inicializada y visible, actualizar la visualización 3D
+    if (escena3DInitializada && container3D.style.display !== 'none') {
+        actualizarVisualizacion3D();
+    }
+}
+
 
 
 function aplicarZoom(canvas, ctx, deltaY, x, y) {
@@ -1634,24 +1969,21 @@ function agregarZoomCanvas() {
     }, { passive: false });
 }
 
+// Modificar la función resetearZoom para que también reset la panorámica
 function resetearZoom() {
-    console.log("Reseteando zoom..."); // Debug
+    console.log("Reseteando zoom y panorámica..."); // Debug
     
     const canvas = document.getElementById('lienzo');
     const ctx = canvas.getContext('2d');
     
-    // Restaurar transformación original
+    // Restaurar transformación original (resetea zoom y panorámica)
     zoomLevel = 1;
+    lastTranslateX = 0;
+    lastTranslateY = 0;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     
-    // Limpiar canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
     // Redibujar todo desde cero
-    dibujarRejilla();
-    dibujarEjesCartesianos(ctx);
-    dibujarFormas();
-    dibujarPuntosExtremos();
+    redibujaTodo();
     
     // Eliminar indicador de zoom
     const zoomInfoElement = document.getElementById('zoomInfo');
@@ -1660,7 +1992,13 @@ function resetearZoom() {
     // Actualizar el estado del canvas
     canvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
     
-    console.log("Zoom reseteado a 100%"); // Debug
+    // Mostrar mensaje
+    mostrarMensajeTemporalEstado("Vista 2D reseteada (zoom 100%)");
+    
+    // Si la vista 3D está visible, también la reseteamos
+    if (container3D.style.display !== 'none') {
+        resetearVista3D();
+    }
 }
 
 function crearBotonResetZoom() {
@@ -1673,6 +2011,22 @@ function crearBotonResetZoom() {
     const contenedorBotones = document.querySelector('.canvas-container');
     if (contenedorBotones) {
         contenedorBotones.parentElement.insertBefore(botonResetZoom, contenedorBotones.nextSibling);
+    }
+}
+
+// Crear botón para centrar ambas vistas
+function crearBotonCentrarVistas() {
+    const botonCentrar = document.createElement('button');
+    botonCentrar.id = 'btnCentrarVistas';
+    botonCentrar.textContent = 'Centrar Vistas';
+    botonCentrar.style.marginTop = '10px';
+    botonCentrar.style.marginLeft = '5px';
+    botonCentrar.addEventListener('click', resetearAmbasVistas);
+    
+    // Insertar después de los controles existentes
+    const contenedorBotones = document.querySelector('.canvas-container');
+    if (contenedorBotones) {
+        contenedorBotones.parentElement.insertBefore(botonCentrar, contenedorBotones.nextSibling);
     }
 }
 
@@ -2139,11 +2493,17 @@ actualizarSnapPuntos();
 // Llamar a esta función después de haber definido todas las otras funciones
 inicializarControlesZoom();
 
-// Evento de inicialización al cargar la página
+// Llamar a esta función al inicializar la aplicación
 window.addEventListener("load", function() {
     inicializarConfiguracion();
     guardarEstadoCanvas();
     dibujarRejilla();
+    
+    // Inicializar panorámica en todas las vistas
+    inicializarPanoramicaEnTodasLasVistas();
+    
+    // Crear botón para centrar las vistas
+    crearBotonCentrarVistas();
 });
 
 }); // Cerrar la función DOMContentLoaded que comenzó arriba
