@@ -1,0 +1,171 @@
+</head>
+<body>
+    <h3>Editor de Dibujo CAD Básico</h3>
+    
+    <!-- Controles de zoom -->
+    <div class="zoom-controls">
+        <button class="zoom-button" id="zoomIn">+</button>
+        <button class="zoom-button" id="zoomOut">-</button>
+        <button class="zoom-button" id="zoomFit">□</button>
+    </div>
+    <div id="originIndicator2D" class="origin-indicator"></div>
+    <div id="cursor3D" class="cursor3d"></div>
+    
+    <!-- Contenedor del canvas 2D -->
+    <div class="canvas-container">
+        <canvas width="800" height="500" tabindex="0" id="lienzo"></canvas>
+        <div id="infoBar" style="padding: 5px; width: 100%; bottom: 0; left: 0; font-family: monospace; font-size: 12px; position: absolute; background-color: rgba(0, 0, 0, 0.7); color: white; display: flex; justify-content: space-between;">
+            <div id="coordCanvas">X: 0, Y: 0</div>
+            <div id="snapInfo"></div>
+            <div id="lineInfo">Longitud: 0 | Ángulo: 0°</div>
+        </div>
+    </div>
+    
+    <!-- Entrada de dimensiones -->
+    <div id="entradaDimensiones" style="padding: 5px; border: 1px solid #999; left: 200px; bottom: 5px; display: none; position: absolute; background-color: rgba(0, 0, 0, 0.9); color: white;">
+        <label>Distancia: <input id="inputDistancia" style="width: 80px; background-color: #333; color: white; border: 1px solid #666;" type="number" step="0.1"></label>
+        <button id="btnAplicarDimensiones">Aplicar</button>
+    </div>
+    
+    <!-- Indicadores visuales -->
+    <div id="distanciaVisual" style="padding: 2px 5px; border-radius: 3px; color: white; font-family: monospace; font-size: 12px; display: none; position: absolute; background-color: rgba(50, 50, 255, 0.8);"></div>
+    <div id="anguloVisual" style="padding: 2px 5px; border-radius: 10px; font-family: monospace; font-size: 10px; display: none; position: absolute; background-color: rgba(0, 0, 0, 0.7); color: white;"></div>
+    
+    <!-- Contenedor para la vista 3D -->
+    <div id="container3D" style="display: none; width: 800px; height: 500px; margin-top: 15px;"></div>
+    
+    <!-- Botones para vistas -->
+    <div style="margin-top: 10px; text-align: center;">
+        <button id="btnToggle3D">Activar Ventana 3D</button>
+        <button id="btnReiniciarVista3D">Reiniciar Vista 3D</button>
+    </div>
+    
+    <!-- Controles y herramientas -->
+    <div style="margin-top: 10px;">
+        <div id="coordenadasPrecisas" style="padding: 5px; border-radius: 3px; left: 10px; bottom: 45px; color: white; display: flex; position: absolute; align-items: center; background-color: #555;">
+            <span style="margin-right: 10px;">Precise primer punto:</span>
+            <input id="inputX" style="border: 1px solid #666; width: 70px; color: white; margin-right: 5px; background-color: #007bff;" type="number" step="0.1" value="0">
+            <input id="inputY" style="border: 1px solid #666; width: 70px; color: black; background-color: #eee;" type="number" step="0.1" value="0">
+        </div>
+        
+        <!-- Botones de herramientas -->
+        <button title="Elipse" class="btn-icono" id="btnElipse">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                <ellipse fill="none" stroke="currentColor" stroke-width="2" cx="12" cy="12" rx="8" ry="5" />
+                <circle fill="#3498db" cx="12" cy="12" r="2" />
+            </svg>
+            <span>Elipse</span>
+        </button>
+        <button title="Línea" class="btn-icono active" id="btnLinea">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                <line stroke="currentColor" stroke-width="2" x1="4" y1="20" x2="20" y2="4" />
+                <circle fill="#3498db" cx="4" cy="20" r="2" />
+                <circle fill="#3498db" cx="20" cy="4" r="2" />
+            </svg>
+            <span>Línea</span>
+        </button>
+        <button title="Polilínea" class="btn-icono" id="btnPolilinea">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                <path fill="none" stroke="currentColor" stroke-width="2" d="M 4 20 L 10 10 L 20 14" />
+                <circle fill="#3498db" cx="4" cy="20" r="2" />
+                <circle fill="#3498db" cx="10" cy="10" r="2" />
+                <circle fill="#3498db" cx="20" cy="14" r="2" />
+            </svg>
+            <span>Polilínea</span>
+        </button>
+        <button title="Rectángulo" class="btn-icono" id="btnRectangulo">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                <rect fill="none" stroke="currentColor" stroke-width="2" x="4" y="4" width="16" height="16" />
+                <circle fill="#3498db" cx="4" cy="4" r="2" />
+                <circle fill="#3498db" cx="20" cy="20" r="2" />
+            </svg>
+            <span>Rectángulo</span>
+        </button>
+        <button title="Círculo" class="btn-icono" id="btnCirculo">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                <circle fill="none" stroke="currentColor" stroke-width="2" cx="12" cy="12" r="8" />
+                <circle fill="#3498db" cx="12" cy="12" r="2" />
+                <line stroke="#3498db" stroke-width="1" x1="12" y1="12" x2="20" y2="12" />
+            </svg>
+            <span>Círculo</span>
+        </button>
+        <button title="Arco" class="btn-icono" id="btnArco">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                <path fill="none" stroke="currentColor" stroke-width="2" d="M 4 20 Q 12 4 20 20" />
+                <circle fill="#3498db" cx="4" cy="20" r="2" />
+                <circle fill="#3498db" cx="20" cy="20" r="2" />
+                <circle fill="#3498db" cx="12" cy="4" r="2" />
+            </svg>
+            <span>Arco</span>
+        </button>
+        <button title="Mano" class="btn-icono" id="btnMano">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                <path fill="none" stroke="currentColor" stroke-width="2" d="M7,11 C7,8 9,7 11,7 C13,7 13,8 13,9 L13,16 C13,16 14,16 14,14 L14,8 C14,6 16,6 16,8 L16,16 C16,16 17,16 17,14 L17,10 C17,8 19,8 19,10 L19,17 C19,21 17,22 14,22 C11,22 7,22 7,17 Z" />
+            </svg>
+            <span>Mano</span>
+        </button>
+        <button id="btnDimension">Entrada Dimensiones</button>
+        <button id="btnRestriccion">Restricción 90° (OFF)</button>
+        <button id="btnSnap">Snap (OFF)</button>
+        
+        <!-- Menú de snap -->
+        <div id="menuSnapObjetos" style="padding: 10px; border-radius: 5px; color: white; display: none; position: absolute; z-index: 1000; box-shadow: 0px 2px 10px rgba(0,0,0,0.3); background-color: #2c3e50;">
+            <div><input id="snapPuntoFinal" type="checkbox" checked><label for="snapPuntoFinal"> Punto final</label></div>
+            <div><input id="snapPuntoMedio" type="checkbox" checked><label for="snapPuntoMedio"> Punto medio</label></div>
+            <div><input id="snapCentro" type="checkbox" checked><label for="snapCentro"> Centro</label></div>
+            <div><input id="snapCentroGeometrico" type="checkbox"><label for="snapCentroGeometrico"> Centro geométrico</label></div>
+            <div><input id="snapPunto" type="checkbox" checked><label for="snapPunto"> Punto</label></div>
+            <div><input id="snapCuadrante" type="checkbox" checked><label for="snapCuadrante"> Cuadrante</label></div>
+            <div><input id="snapInterseccion" type="checkbox"><label for="snapInterseccion"> Intersección</label></div>
+            <div><input id="snapExtension" type="checkbox"><label for="snapExtension"> Extensión</label></div>
+            <div><input id="snapInsercion" type="checkbox"><label for="snapInsercion"> Inserción</label></div>
+            <div><input id="snapPerpendicular" type="checkbox"><label for="snapPerpendicular"> Perpendicular</label></div>
+            <div><input id="snapTangente" type="checkbox"><label for="snapTangente"> Tangente</label></div>
+            <div><input id="snapCercano" type="checkbox"><label for="snapCercano"> Cercano</label></div>
+            <div><input id="snapInterseccionFicticia" type="checkbox"><label for="snapInterseccionFicticia"> Intersección ficticia</label></div>
+            <div><input id="snapParalelo" type="checkbox"><label for="snapParalelo"> Paralelo</label></div>
+        </div>
+        
+        <!-- Modal de atajos -->
+        <div id="modalAtajos" style="padding: 15px; border-radius: 5px; left: 50%; top: 50%; width: 90%; color: white; display: none; position: absolute; z-index: 1000; max-width: 400px; box-shadow: 0px 2px 15px rgba(0,0,0,0.4); transform: translate(-50%, -50%); background-color: #2c3e50;">
+            <h3 style="padding-bottom: 8px; margin-top: 0px; border-bottom: 1px solid #eee;">Atajos de Teclado</h3>
+            <div style="margin-bottom: 15px;">
+                <div style="margin-bottom: 8px; display: flex; justify-content: space-between;"><strong>ESC</strong><span>Cancelar operación actual</span></div>
+                <div style="margin-bottom: 8px; display: flex; justify-content: space-between;"><strong>F8</strong><span>Activar/desactivar restricción 90°</span></div>
+                <div style="margin-bottom: 8px; display: flex; justify-content: space-between;"><strong>Ctrl+Z</strong><span>Deshacer</span></div>
+            </div>
+            <button id="cerrarModalAtajos" style="background: #3498db; padding: 5px 10px; border-radius: 3px; border: none; color: white; float: right; cursor: pointer;">Cerrar</button>
+            <div style="clear: both;"></div>
+        </div>
+        
+        <button id="btnRejilla">Rejilla (OFF)</button>
+        <button id="btnSnapGrid">Snap a Rejilla (OFF)</button>
+        <button id="btnDeshacer">Deshacer (Ctrl+Z)</button>
+        <button id="btnLimpiar">Limpiar lienzo</button>
+        <button id="btnGuardarSVG">Guardar SVG</button>
+        <button id="btnImportarSVG">Importar SVG</button>
+        <textarea id="svgOutput" style="width: 100%; height: 150px; font-family: monospace; margin-top: 10px; display: none;"></textarea>
+        <button id="btnAtajos">Atajos de Teclado</button>
+        
+        <!-- Modal para importar SVG -->
+        <div id="modalImportarSVG" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+            <div style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 600px; border-radius: 5px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h2 style="margin: 0;">Importar SVG</h2>
+                    <button id="cerrarModalImportarSVG" style="background: none; border: none; font-size: 24px; cursor: pointer;">×</button>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <h3>Cargar archivo SVG</h3>
+                    <input type="file" id="inputArchivoSVG" accept=".svg">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <h3>Pegar código SVG</h3>
+                    <textarea id="textareaSVG" rows="10" style="width: 100%; resize: vertical;"></textarea>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <button id="btnPegarSVG" style="background-color: #3498db; color: white; border: none; padding: 10px 15px; border-radius: 3px; cursor: pointer;">Pegar SVG</button>
+                    <button id="btnCargarSVG" style="background-color: #2ecc71; color: white; border: none; padding: 10px 15px; border-radius: 3px; cursor: pointer;">Cargar SVG</button>
+                </div>
+            </div>
+        </div>
+    </div>
