@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>Editor de Dibujo CAD Básico</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #1e1e1e;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        canvas {
+            display: block;
+            border: 1px solid #444;
+            background-color: #2d2d2d;
+            background-image: url('https://www.transparenttextures.com/patterns/dark-mosaic.png');
+            background-blend-mode: overlay;
+            cursor: crosshair;
+            margin: 0 auto;
+        }
+
+        .canvas-container {
+            border: 2px solid #555;
+            border-radius: 5px;
+            margin-top: 15px;
+            position: relative;
+            background-color: transparent;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        #container3D {
+            border: 1px solid #444;
+            background-color: #000000;
+            cursor: none;
+        }
+
+        .active {
+            background-color: #0066cc;
+            color: white;
+        }
+
+        button {
+            padding: 5px 10px;
+            margin-right: 5px;
+            cursor: pointer;
+            margin-bottom: 5px;
+            background-color: #333;
+            color: white;
+            border: 1px solid #444;
+        }
+
+        .btn-icono {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px;
+            margin: 3px;
+        }
+
+        .btn-icono.active {
+            background-color: #3498db;
+        }
+
+        .btn-icono svg {
+            margin-bottom: 4px;
+            width: 24px;
+            height: 24px;
+        }
+
+        .zoom-controls {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 5px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .zoom-button {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #444;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+            border-radius: 3px;
+            transition: background-color 0.2s;
+        }
+
+        .zoom-button:hover {
+            background-color: #666;
+        }
+
+        .cursor3d {
+            position: absolute;
+            pointer-events: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid white;
+            border-radius: 50%;
+        }
+
+        .cursor3d::before,
+        .cursor3d::after {
+            content: '';
+            position: absolute;
+            background-color: white;
+        }
+
+        .cursor3d::before {
+            width: 2px;
+            height: 20px;
+            left: 9px;
+            top: 0;
+        }
+
+        .cursor3d::after {
+            width: 20px;
+            height: 2px;
+            left: 0;
+            top: 9px;
+        }
+
+        .origin-indicator {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border: 2px solid yellow;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            background-color: rgba(255, 255, 0, 0.2);
+        }
+
+        .origin-indicator::before,
+        .origin-indicator::after {
+            content: '';
+            position: absolute;
+            background-color: yellow;
+        }
+
+        .origin-indicator::before {
+            width: 1px;
+            height: 10px;
+            left: 4px;
+            top: -5px;
+        }
+
+        .origin-indicator::after {
+            width: 10px;
+            height: 1px;
+            left: -5px;
+            top: 4px;
+        }
+    </style>
