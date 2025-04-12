@@ -513,74 +513,83 @@ const Canvas2D = {
         return true;
     },
 
-    inicializarConfiguracion() {
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = "#ffffff";
-        ctx.fillStyle = "#ff0000";
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // Inicializar snapPuntos con el origen
-        snapPuntos = [{ 
-            x: 400, 
-            y: 250, 
-            tipo: "origen", 
-            forma: { tipo: "punto" } 
-        }];
-        
-        // Añadir etiqueta del origen
-        const oldLabel = document.querySelector('.origen-label');
-        if (oldLabel) oldLabel.remove();
-        
-        const origenLabel = document.createElement("div");
-        origenLabel.className = "origen-label";
-        origenLabel.textContent = "Origen (0,0)";
-        Object.assign(origenLabel.style, {
-            position: "absolute",
-            left: "410px",
-            top: "235px",
-            fontFamily: "monospace",
-            fontSize: "12px",
-            color: "yellow",
-            backgroundColor: "rgba(0,0,0,0.6)",
-            padding: "3px 6px",
-            borderRadius: "3px",
-            pointerEvents: "none",
-            zIndex: "1000"
-        });
-        canvas.parentElement.appendChild(origenLabel);
-        
-        // Posicionar el indicador de origen 2D
-        const originIndicator2D = document.getElementById('originIndicator2D');
-        if (originIndicator2D) {
-            originIndicator2D.style.left = '400px';
-            originIndicator2D.style.top = '250px';
-            originIndicator2D.style.display = 'block';
-        }
-        
-        this.dibujarEjesCartesianos();
-        
-        // Activar la rejilla por defecto
-        rejillaActiva = true;
-        const btnRejilla = document.getElementById("btnRejilla");
-        if (btnRejilla) {
-            btnRejilla.textContent = "Rejilla (ON)";
-        }
-        this.dibujarRejilla();
-        
-        // Guardar el estado inicial
-        canvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        Utilidades.mostrarMensajeTemporalEstado("Editor CAD listo");
-    },
+inicializarConfiguracion() {
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#ffffff";
+    ctx.fillStyle = "#ff0000";
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Inicializar snapPuntos con el origen
+    snapPuntos = [{ 
+        x: 400, 
+        y: 250, 
+        tipo: "origen", 
+        forma: { tipo: "punto" } 
+    }];
+    
+    // Añadir etiqueta del origen
+    const oldLabel = document.querySelector('.origen-label');
+    if (oldLabel) oldLabel.remove();
+    
+    const origenLabel = document.createElement("div");
+    origenLabel.className = "origen-label";
+    origenLabel.textContent = "Origen (0,0)";
+    Object.assign(origenLabel.style, {
+        position: "absolute",
+        left: "410px",
+        top: "235px",
+        fontFamily: "monospace",
+        fontSize: "12px",
+        color: "yellow",
+        backgroundColor: "rgba(0,0,0,0.6)",
+        padding: "3px 6px",
+        borderRadius: "3px",
+        pointerEvents: "none",
+        zIndex: "1000"
+    });
+    canvas.parentElement.appendChild(origenLabel);
+    
+    // Posicionar el indicador de origen 2D
+    const originIndicator2D = document.getElementById('originIndicator2D');
+    if (originIndicator2D) {
+        originIndicator2D.style.left = '400px';
+        originIndicator2D.style.top = '250px';
+        originIndicator2D.style.display = 'block';
+    }
+    
+    this.dibujarEjesCartesianos();
+    
+    // Activar la rejilla por defecto
+    rejillaActiva = true;
+    const btnRejilla = document.getElementById("btnRejilla");
+    if (btnRejilla) {
+        btnRejilla.textContent = "Rejilla (ON)";
+    }
+    this.dibujarRejilla();
+    
+    // Inicializar los ejes como un canvas separado
+    this.inicializarEjesCartesianos();
+    
+    // Guardar el estado inicial
+    canvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    Utilidades.mostrarMensajeTemporalEstado("Editor CAD listo");
+},
 
 
-// Reemplaza la función inicializarPanoramica en el módulo Canvas2D
-
+// Reemplaza la función inicializarPanoramica con esta versión
 inicializarPanoramica() {
+    // Variable para almacenar el estado original
+    let originalState = null;
+    
     canvas.addEventListener('mousedown', (e) => {
-        if (e.button === 1) { // Botón del medio
+        if (e.button === 1) {
             e.preventDefault();
             e.stopPropagation();
+            
+            // Guardar el estado original al iniciar la panorámica
+            originalState = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            
             isPanning = true;
             startPanX = e.clientX;
             startPanY = e.clientY;
@@ -592,29 +601,32 @@ inicializarPanoramica() {
     canvas.addEventListener('mousemove', (e) => {
         if (!isPanning) return;
         
-        // Calcular el desplazamiento
+        // Calcular el desplazamiento desde el inicio de la panorámica
         const dx = e.clientX - startPanX;
         const dy = e.clientY - startPanY;
         
-        // Actualizar puntos de inicio para el próximo movimiento
+        // Actualizar puntos para el próximo movimiento
         startPanX = e.clientX;
         startPanY = e.clientY;
         
-        // Actualizar las variables de desplazamiento acumulado
+        // Actualizar las variables acumuladas
         lastTranslateX += dx;
         lastTranslateY += dy;
         
-        // Obtener la transformación actual
-        const transform = ctx.getTransform();
+        // Limpiar el canvas
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        // Aplicar la nueva transformación
-        ctx.setTransform(
-            transform.a, transform.b, transform.c, 
-            transform.d, transform.e + dx, transform.f + dy
-        );
+        // Restaurar el estado original si existe
+        if (originalState) {
+            ctx.putImageData(originalState, 0, 0);
+        }
         
-        // IMPORTANTE: Solo redibujamos, no creamos nuevos elementos
-        this.redibujaTodo();
+        // Aplicar la transformación de panorámica
+        ctx.setTransform(zoomLevel, 0, 0, zoomLevel, lastTranslateX, lastTranslateY);
+        
+        // Actualizar el indicador de origen
+        this.actualizarIndicadorOrigen();
         
         e.preventDefault();
         e.stopPropagation();
@@ -627,9 +639,12 @@ inicializarPanoramica() {
             isPanning = false;
             canvas.style.cursor = 'crosshair';
             
-            // IMPORTANTE: En lugar de guardar un nuevo estado, actualizamos el existente
-            // para preservar el contexto de transformación
+            // Guardar el nuevo estado después de la panorámica
             canvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            this.guardarEstado();
+            
+            // Limpiar la referencia al estado original
+            originalState = null;
             
             Utilidades.mostrarMensajeTemporalEstado("Panorámica 2D finalizada");
         }
@@ -639,12 +654,18 @@ inicializarPanoramica() {
         if (isPanning) {
             isPanning = false;
             canvas.style.cursor = 'crosshair';
+            
+            // Guardar estado y limpiar referencias
             canvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            this.guardarEstado();
+            originalState = null;
         }
     });
 
     canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 },
+
+inicializarEjesCartesianos
 
 // Modifica también la función redibujaTodo para asegurar que solo dibuja una vez
 redibujaTodo() {
@@ -666,6 +687,63 @@ redibujaTodo() {
     this.dibujarFormas();
     this.dibujarPuntosExtremos();
     this.actualizarIndicadorOrigen();
+},
+
+// Nueva función para dibujar ejes en un contexto dado
+dibujarEjesCartesianosEnContexto(contexto) {
+    contexto.save();
+    
+    // Establecer color blanco para los ejes
+    contexto.strokeStyle = "#ffffff";
+    contexto.fillStyle = "#ffffff";
+    contexto.lineWidth = 2;
+    
+    // Dibujar eje X con flecha
+    contexto.beginPath();
+    contexto.moveTo(400, 250); // Origen
+    contexto.lineTo(700, 250); // Fin del eje X
+    contexto.stroke();
+    
+    // Flecha del eje X (triángulo)
+    contexto.beginPath();
+    contexto.moveTo(700, 250);
+    contexto.lineTo(690, 245);
+    contexto.lineTo(690, 255);
+    contexto.closePath();
+    contexto.fill();
+    
+    // Dibujar eje Y con flecha
+    contexto.beginPath();
+    contexto.moveTo(400, 250); // Origen
+    contexto.lineTo(400, 50);  // Fin del eje Y
+    contexto.stroke();
+    
+    // Flecha del eje Y (triángulo)
+    contexto.beginPath();
+    contexto.moveTo(400, 50);
+    contexto.lineTo(395, 60);
+    contexto.lineTo(405, 60);
+    contexto.closePath();
+    contexto.fill();
+    
+    // Dibujar cuadrado en el origen
+    contexto.beginPath();
+    contexto.rect(395, 245, 10, 10); // Pequeño cuadrado en el origen
+    contexto.stroke();
+    
+    // Etiquetas para los ejes
+    contexto.font = "16px monospace";
+    contexto.fillStyle = "#ffffff";
+    contexto.fillText("X", 710, 250);
+    contexto.fillText("Y", 400, 40);
+    
+    contexto.restore();
+},
+
+// Modifica la función dibujarEjesCartesianos para que no haga nada
+dibujarEjesCartesianos() {
+    // Esta función ahora no hace nada, ya que los ejes están en un canvas separado
+    return;
 },
 
     inicializarZoom() {
@@ -766,55 +844,6 @@ redibujaTodo() {
         this.actualizarIndicadorOrigen();
     },
 
-    dibujarEjesCartesianos() {
-    ctx.save();
-    
-    // Establecer color blanco para los ejes
-    ctx.strokeStyle = "#ffffff";
-    ctx.fillStyle = "#ffffff";
-    ctx.lineWidth = 2;
-    
-    // Dibujar eje X con flecha
-    ctx.beginPath();
-    ctx.moveTo(400, 250); // Origen
-    ctx.lineTo(700, 250); // Fin del eje X
-    ctx.stroke();
-    
-    // Flecha del eje X (triángulo)
-    ctx.beginPath();
-    ctx.moveTo(700, 250);
-    ctx.lineTo(690, 245);
-    ctx.lineTo(690, 255);
-    ctx.closePath();
-    ctx.fill();
-    
-    // Dibujar eje Y con flecha
-    ctx.beginPath();
-    ctx.moveTo(400, 250); // Origen
-    ctx.lineTo(400, 50);  // Fin del eje Y
-    ctx.stroke();
-    
-    // Flecha del eje Y (triángulo)
-    ctx.beginPath();
-    ctx.moveTo(400, 50);
-    ctx.lineTo(395, 60);
-    ctx.lineTo(405, 60);
-    ctx.closePath();
-    ctx.fill();
-    
-    // Dibujar cuadrado en el origen
-    ctx.beginPath();
-    ctx.rect(395, 245, 10, 10); // Pequeño cuadrado en el origen
-    ctx.stroke();
-    
-    // Etiquetas para los ejes
-    ctx.font = "16px monospace";
-    ctx.fillStyle = "#ffffff";
-    ctx.fillText("X", 710, 250);
-    ctx.fillText("Y", 400, 40);
-    
-    ctx.restore();
-},
 
     dibujarRejilla() {
         if (!rejillaActiva) return;
