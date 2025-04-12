@@ -1323,13 +1323,22 @@ function dibujarElipse(ctx, x, y, radiusX, radiusY) {
     ctx.stroke();
 }
 
-function inicializarConfiguracion() {
-    // Configuración inicial del contexto
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = "#ffffff";
-    ctx.fillStyle = "#ff0000";
+function reinicioCompleto() {
+    // Resetear todo a valores iniciales
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    zoomLevel = 1;
+    lastTranslateX = 0;
+    lastTranslateY = 0;
     
-    // Añadir el origen como punto de snap especial
+    // Limpiar arrays y variables de estado
+    formas = [];
+    lineas3D = [];
+    historialEstados = [];
+    posicionHistorial = -1;
+    snapPuntos = [];
+    
+    // Añadir el origen como punto de snap
     snapPuntos.push({
         x: 400,
         y: 250,
@@ -1337,17 +1346,66 @@ function inicializarConfiguracion() {
         forma: { tipo: "punto" }
     });
     
+    // Configurar canvas
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#ffffff";
+    ctx.fillStyle = "#ff0000";
+    
+    // Redibujar desde cero
+    dibujarEjesCartesianos(ctx);
+    dibujarRejilla();
+    
+    // Guardar estado
+    canvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    
+    // Mensaje
+    mostrarMensajeTemporalEstado("Aplicación completamente reiniciada");
+}
+
+function inicializarConfiguracion() {
+    // Configuración inicial del contexto - asegurarse de resetear transformaciones
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#ffffff";
+    ctx.fillStyle = "#ff0000";
+    
+    // Limpiar el canvas para asegurarse de que no hay elementos previos
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Añadir el origen como punto de snap especial
+    snapPuntos = []; // Limpiar puntos existentes primero
+    snapPuntos.push({
+        x: 400,
+        y: 250,
+        tipo: "origen",
+        forma: { tipo: "punto" }
+    });
+    
+	// Añadir botón para esto
+const botonReinicioTotal = document.createElement('button');
+	botonReinicioTotal.textContent = 'Reinicio Completo';
+botonReinicioTotal.style.marginTop = '10px';
+botonReinicioTotal.style.backgroundColor = '#ff3333';
+botonReinicioTotal.addEventListener('click', reinicioCompleto);
+document.body.appendChild(botonReinicioTotal);
+	
+	
     // Mostrar etiqueta del origen con mejor integración visual
+    // Eliminar etiqueta anterior si existe
+    const oldLabel = document.querySelector('.origen-label');
+    if (oldLabel) oldLabel.remove();
+    
     const origenLabel = document.createElement("div");
+    origenLabel.className = "origen-label"; // Añadir clase para poder encontrarla después
     origenLabel.textContent = "Origen (0,0)";
     origenLabel.style.position = "absolute";
     origenLabel.style.left = "410px";
     origenLabel.style.top = "235px";
     origenLabel.style.fontFamily = "monospace";
-    origenLabel.style.fontSize = "10px";
+    origenLabel.style.fontSize = "12px"; // Aumentar tamaño
     origenLabel.style.color = "yellow";
-    origenLabel.style.backgroundColor = "rgba(0,0,0,0.4)"; // Fondo semi-transparente
-    origenLabel.style.padding = "2px 5px";
+    origenLabel.style.backgroundColor = "rgba(0,0,0,0.6)"; // Fondo más oscuro para mejor contraste
+    origenLabel.style.padding = "3px 6px";
     origenLabel.style.borderRadius = "3px";
     origenLabel.style.pointerEvents = "none";
     origenLabel.style.zIndex = "1000";
@@ -1358,6 +1416,19 @@ function inicializarConfiguracion() {
     originIndicator2D.style.left = '400px';
     originIndicator2D.style.top = '250px';
     originIndicator2D.style.display = 'block';
+    
+    // Dibujar ejes y rejilla inicialmente
+    dibujarEjesCartesianos(ctx);
+    
+    // Activar la rejilla por defecto para mayor visibilidad
+    rejillaActiva = true;
+    if (document.getElementById("btnRejilla")) {
+        document.getElementById("btnRejilla").textContent = "Rejilla (ON)";
+    }
+    dibujarRejilla();
+    
+    // Guardar el estado inicial del canvas
+    canvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
     
     // Mensaje inicial
     mostrarMensajeTemporalEstado("Editor CAD listo - Colores configurados");
@@ -1378,34 +1449,71 @@ function restaurarEstadoCanvas() {
 	 dibujarEjesCartesianos(ctx); // Agregar esta línea
 }
 
+// Modificar esta función para aumentar el contraste
 function dibujarEjesCartesianos(ctx) {
     // Guardar el estado actual del contexto
     ctx.save();
     
-    // Establecer estilos para los ejes con mayor contraste
-    ctx.lineWidth = 2; // Aumentar grosor
+    // Asegurarse de usar la transformación actual
+    const transform = ctx.getTransform();
     
-    // Dibujar eje X (rojo)
+    // Aumentar grosor para mayor visibilidad
+    ctx.lineWidth = 3;
+    
+    // Dibujar eje X (rojo brillante)
     ctx.beginPath();
-    ctx.strokeStyle = "#ff0000";
+    ctx.strokeStyle = "#ff3333"; // Rojo más brillante
     ctx.moveTo(0, 250);
     ctx.lineTo(800, 250);
     ctx.stroke();
     
-    // Dibujar eje Y (verde)
+    // Dibujar eje Y (verde brillante)
     ctx.beginPath();
-    ctx.strokeStyle = "#00ff00";
+    ctx.strokeStyle = "#33ff33"; // Verde más brillante
     ctx.moveTo(400, 0);
     ctx.lineTo(400, 500);
     ctx.stroke();
     
-    // Dibujar origen con mayor tamaño
+    // Dibujar origen con mayor tamaño y brillo
     ctx.beginPath();
-    ctx.fillStyle = "#ffff00";
-    ctx.arc(400, 250, 6, 0, Math.PI * 2);
+    ctx.fillStyle = "#ffff33"; // Amarillo más brillante
+    ctx.arc(400, 250, 8, 0, Math.PI * 2);
     ctx.fill();
     
+    // Etiquetas para los ejes
+    ctx.font = "16px monospace";
+    ctx.fillStyle = "#ff3333";
+    ctx.fillText("X", 780, 270);
+    ctx.fillStyle = "#33ff33";
+    ctx.fillText("Y", 410, 20);
+    
     // Restaurar el contexto
+    ctx.restore();
+}
+
+// Y aplicar la rejilla con mayor contraste también
+function dibujarRejilla() {
+    if (!rejillaActiva) return;
+    
+    ctx.save();
+    ctx.strokeStyle = "#666666"; // Gris más claro para mejor contraste
+    ctx.lineWidth = 0.8; // Líneas más gruesas
+    
+    // La misma lógica, pero con colores más contrastantes
+    for (var x = tamanoRejilla; x < canvas.width; x += tamanoRejilla) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+    }
+    
+    for (var y = tamanoRejilla; y < canvas.height; y += tamanoRejilla) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+    }
+    
     ctx.restore();
 }
 
@@ -2248,9 +2356,14 @@ document.getElementById("btnDeshacer").addEventListener("click", function() {
 });
 
 document.getElementById("btnLimpiar").addEventListener("click", function() {
+    // Mantener la transformación actual pero limpiar contenido
+    const transformActual = ctx.getTransform();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.setTransform(transformActual);
+    
+    // Reiniciar variables de estado
     puntoInicial = null;
-    canvasState = null;
     formas = [];
     snapPuntos = [];
     lineaPuntosCercanos = [];
@@ -2259,17 +2372,24 @@ document.getElementById("btnLimpiar").addEventListener("click", function() {
     snapInfoElement.textContent = "";
     distanciaInfoElement.style.display = "none";
     distanciaVisualElement.style.display = "none";
-    historialEstados = [];
-    posicionHistorial = -1;
-	// Añadir el origen como punto de snap después de limpiar
+    
+    // Añadir el origen como punto de snap después de limpiar
     snapPuntos.push({
         x: 400,
         y: 250,
         tipo: "origen",
         forma: { tipo: "punto" }
     });
+    
+    // Dibujar ejes y rejilla
+    dibujarEjesCartesianos(ctx);
+    dibujarRejilla();
+    
+    // Guardar el nuevo estado limpio
+    canvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    historialEstados = [];
+    posicionHistorial = -1;
     guardarEstadoCanvas();
-	dibujarEjesCartesianos(ctx); // Dibujar ejes después de limpiar
 });
 
 document.getElementById("btnAtajos").addEventListener("click", function() {
