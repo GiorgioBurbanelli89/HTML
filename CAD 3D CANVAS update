@@ -2019,10 +2019,83 @@ inputYElement.addEventListener("keypress", function(e) {
     }
 });
 }  // Cierra la función inicializarCoordenadas()
+// Inicializar controles de zoom
+function inicializarControlesZoom() {
+    // El botón + para acercar
+    document.getElementById('zoomIn').addEventListener('click', function() {
+        const canvas = document.getElementById('lienzo');
+        const ctx = canvas.getContext('2d');
+        
+        // Aplicar zoom en el centro del canvas
+        const rect = canvas.getBoundingClientRect();
+        const centerX = rect.left + rect.width/2;
+        const centerY = rect.top + rect.height/2;
+        
+        aplicarZoom(canvas, ctx, -100, centerX, centerY); // Valor negativo para zoom in
+        mostrarMensajeTemporalEstado("Zoom acercado");
+    });
+    
+    // El botón - para alejar
+    document.getElementById('zoomOut').addEventListener('click', function() {
+        const canvas = document.getElementById('lienzo');
+        const ctx = canvas.getContext('2d');
+        
+        // Aplicar zoom en el centro del canvas
+        const rect = canvas.getBoundingClientRect();
+        const centerX = rect.left + rect.width/2;
+        const centerY = rect.top + rect.height/2;
+        
+        aplicarZoom(canvas, ctx, 100, centerX, centerY); // Valor positivo para zoom out
+        mostrarMensajeTemporalEstado("Zoom alejado");
+    });
+    
+    // El botón □ para ajustar la vista
+    document.getElementById('zoomFit').addEventListener('click', function() {
+        resetearZoom();
+        mostrarMensajeTemporalEstado("Zoom ajustado a la vista completa");
+    });
+}
 
+// Función para actualizar el dibujo con coordenadas precisas
+function actualizarDibujoConCoordenadas(x, y) {
+    if (!puntoInicial) return;
+    
+    restaurarEstadoCanvas();
+    
+    // Dibujar punto inicial
+    ctx.beginPath();
+    ctx.fillStyle = "#ff0000";
+    ctx.arc(puntoInicial.x, puntoInicial.y, 4, 0, Math.PI * 2);
+    ctx.fill();
+    
+    var puntoFinal = restriccionAngulo ? restringirAngulo(puntoInicial.x, puntoInicial.y, x, y) : {x: x, y: y};
+    
+    // Dibujar línea de proyección
+    ctx.beginPath();
+    ctx.setLineDash([5, 3]);
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 2;
+    ctx.moveTo(puntoInicial.x, puntoInicial.y);
+    ctx.lineTo(puntoFinal.x, puntoFinal.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    
+    // Mostrar información visual
+    mostrarAnguloVisual(puntoInicial.x, puntoInicial.y, puntoFinal.x, puntoFinal.y);
+    mostrarDistanciaVisual(puntoInicial.x, puntoInicial.y, puntoFinal.x, puntoFinal.y);
+    mostrarOrtoVisual(puntoInicial.x, puntoInicial.y, puntoFinal.x, puntoFinal.y);
+    
+    // Actualizar la información de línea
+    var longitud = Math.round(calcularDistancia(puntoInicial.x, puntoInicial.y, puntoFinal.x, puntoFinal.y));
+    var angulo = Math.round(calcularAngulo(puntoInicial.x, puntoInicial.y, puntoFinal.x, puntoFinal.y));
+    lineInfoElement.textContent = "Longitud: " + longitud + " | Ángulo: " + angulo + "°";
+}
 // Inicialización
+
 inicializarCoordenadas();
 actualizarSnapPuntos();
+// Llamar a esta función después de haber definido todas las otras funciones
+inicializarControlesZoom();
 
 // Evento de inicialización al cargar la página
 window.addEventListener("load", function() {
