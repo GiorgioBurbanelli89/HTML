@@ -643,21 +643,18 @@ inicializarConfiguracion() {
 
 
 inicializarPanoramica() {
-    // Referencia a las formas originales
     let formasOriginales = null;
     
     canvas.addEventListener('mousedown', (e) => {
         if (e.button === 1) { // Botón del medio
             e.preventDefault();
             
-            // GUARDAR LAS FORMAS ORIGINALES (copia profunda)
+            // Guardar una copia de las formas
             formasOriginales = JSON.parse(JSON.stringify(formas));
             
             isPanning = true;
             startPanX = e.clientX;
             startPanY = e.clientY;
-            startTranslateX = lastTranslateX;
-            startTranslateY = lastTranslateY;
             canvas.style.cursor = 'grabbing';
         }
     });
@@ -665,45 +662,56 @@ inicializarPanoramica() {
     canvas.addEventListener('mousemove', (e) => {
         if (!isPanning) return;
         
-        // Calcular desplazamiento TOTAL desde el inicio
-        const dx = e.clientX - startPanX;
-        const dy = e.clientY - startPanY;
+        const transform = ctx.getTransform();
         
-        // Actualizar posición (absoluta, no incremental)
-        lastTranslateX = startTranslateX + dx;
-        lastTranslateY = startTranslateY + dy;
+        // Calcular desplazamiento considerando el zoom actual
+        const dx = (e.clientX - startPanX) / transform.a;
+        const dy = (e.clientY - startPanY) / transform.d;
         
-        // Resetear completamente el canvas y dibujar todo desde cero
+        // Limpiar y restaurar la transformación base
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.setTransform(zoomLevel, 0, 0, zoomLevel, lastTranslateX, lastTranslateY);
         
-        // Forzar renderizado con formas originales
+        // Restaurar transformación con zoom y desplazamiento
+        ctx.setTransform(
+            transform.a, 
+            transform.b, 
+            transform.c, 
+            transform.d, 
+            transform.e + dx, 
+            transform.f + dy
+        );
+        
+        // Redibujar usando formas originales
         if (formasOriginales) {
-            // Reemplazar temporalmente las formas para dibujar
             const formasPrevias = formas;
             formas = formasOriginales;
             
-            // Dibujar sin modificar las formas
-            this.dibujarRejilla();
+            // Dibujar elementos
+            if (rejillaActiva) this.dibujarRejilla();
             this.dibujarEjesCartesianos();
             this.dibujarFormas();
+            this.dibujarPuntosExtremos();
+            this.actualizarIndicadorOrigen();
             
             // Restaurar formas originales
             formas = formasPrevias;
         }
+        
+        // Actualizar puntos de inicio
+        startPanX = e.clientX;
+        startPanY = e.clientY;
     });
     
     canvas.addEventListener('mouseup', (e) => {
-        if (e.button === 1 && isPanning) {
+        if (e.button === 1) {
             isPanning = false;
             canvas.style.cursor = 'crosshair';
             
-            // IMPORTANTE: No modificar el array de formas
-            // Solo actualizar la transformación
+            // Guardar estado
+            this.guardarEstado();
             
-            canvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            formasOriginales = null;
+            Utilidades.mostrarMensajeTemporalEstado("Panorámica 2D finalizada");
         }
     });
     
