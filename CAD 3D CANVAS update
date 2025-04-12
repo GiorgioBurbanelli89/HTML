@@ -1527,116 +1527,7 @@ function deshacer() {
     }
 }
 
-// Función para aplicar zoom
-function aplicarZoom(canvas, ctx, deltaY, x, y) {
-    // Calcular nueva escala de zoom
-    const escalaAnterior = zoomLevel;
-    zoomLevel -= deltaY > 0 ? -ZOOM_SPEED : ZOOM_SPEED;
-    
-    // Limitar zoom
-    zoomLevel = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoomLevel));
-    
-    // Coordenadas del ratón relativas al canvas
-    const rect = canvas.getBoundingClientRect();
-    const mouseX = x - rect.left;
-    const mouseY = y - rect.top;
-    
-    // Guardar estado actual del canvas
-    const estadoAnterior = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    
-    // Limpiar canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Transformación de zoom
-    ctx.save();
-    ctx.translate(mouseX, mouseY);
-    ctx.scale(zoomLevel / escalaAnterior, zoomLevel / escalaAnterior);
-    ctx.translate(-mouseX, -mouseY);
-    
-    // Restaurar dibujos anteriores con nueva escala
-    ctx.putImageData(estadoAnterior, 0, 0);
-    
-    // Restaurar contexto
-    ctx.restore();
-    
-    // Redibujar ejes y rejilla
-    dibujarRejilla();
-    dibujarEjesCartesianos(ctx);
-    dibujarFormas();
-    
-    // Actualizar información de coordenadas
-    const coordenadasOriginales = {
-        x: (mouseX - 400) / zoomLevel,
-        y: (250 - mouseY) / zoomLevel
-    };
-    
-    // Mostrar información de zoom
-    const zoomInfoElement = document.createElement('div');
-    zoomInfoElement.style.position = 'absolute';
-    zoomInfoElement.style.top = '10px';
-    zoomInfoElement.style.left = '10px';
-    zoomInfoElement.style.backgroundColor = 'rgba(0,0,0,0.7)';
-    zoomInfoElement.style.color = 'white';
-    zoomInfoElement.style.padding = '5px';
-    zoomInfoElement.style.borderRadius = '3px';
-    zoomInfoElement.textContent = `Zoom: ${(zoomLevel * 100).toFixed(0)}%`;
-    
-    // Eliminar zoom info existente y añadir nueva
-    const antiguaZoomInfo = document.querySelector('#zoomInfo');
-    if (antiguaZoomInfo) antiguaZoomInfo.remove();
-    
-    zoomInfoElement.id = 'zoomInfo';
-    canvas.parentElement.appendChild(zoomInfoElement);
-}
 
-// Añadir evento de zoom al canvas
-function agregarZoomCanvas() {
-    const canvas = document.getElementById('lienzo');
-    const ctx = canvas.getContext('2d');
-    
-    canvas.addEventListener('wheel', function(event) {
-        // Prevenir scroll de página
-        event.preventDefault();
-        
-        // Aplicar zoom
-        aplicarZoom(canvas, ctx, event.deltaY, event.clientX, event.clientY);
-    }, { passive: false });
-}
-
-// Añadir función para resetear zoom
-function resetearZoom() {
-    const canvas = document.getElementById('lienzo');
-    const ctx = canvas.getContext('2d');
-    
-    zoomLevel = 1;
-    ctx.setTransform(1, 0, 0, 1, 0, 0); // Resetear transformación
-    
-    // Limpiar canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Redibujar todo
-    dibujarRejilla();
-    dibujarEjesCartesianos(ctx);
-    dibujarFormas();
-    
-    // Eliminar indicador de zoom
-    const zoomInfoElement = document.getElementById('zoomInfo');
-    if (zoomInfoElement) zoomInfoElement.remove();
-}
-
-// Añadir botón de reseteo de zoom
-function crearBotonResetZoom() {
-    const botonResetZoom = document.createElement('button');
-    botonResetZoom.textContent = 'Resetear Zoom';
-    botonResetZoom.style.marginTop = '10px';
-    botonResetZoom.addEventListener('click', resetearZoom);
-    
-    // Insertar después de los controles existentes
-    const contenedorBotones = document.querySelector('.canvas-container');
-    if (contenedorBotones) {
-        contenedorBotones.parentElement.insertBefore(botonResetZoom, contenedorBotones.nextSibling);
-    }
-}
 
 // Función para aplicar zoom
 function aplicarZoom(canvas, ctx, deltaY, x, y) {
@@ -1735,7 +1626,6 @@ function resetearZoom() {
     if (zoomInfoElement) zoomInfoElement.remove();
 }
 
-// Añadir botón de reseteo de zoom
 function crearBotonResetZoom() {
     const botonResetZoom = document.createElement('button');
     botonResetZoom.textContent = 'Resetear Zoom';
