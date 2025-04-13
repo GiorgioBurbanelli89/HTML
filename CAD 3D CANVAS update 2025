@@ -4,8 +4,9 @@
     <title>Editor de Dibujo CAD Básico</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <!-- En el head, alrededor de la línea 5-10 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/controls/OrbitControls.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -741,20 +742,20 @@
         },
 
         // Convierte coordenadas de pantalla 2D a coordenadas del canvas 2D (considerando pan y zoom)
-        screenToCanvas(screenX, screenY) {
-            const rect = canvas.getBoundingClientRect();
-            const canvasX = (screenX - rect.left) / zoomLevel - panX;
-            const canvasY = (screenY - rect.top) / zoomLevel - panY;
-            return { x: canvasX, y: canvasY };
-        },
+screenToCanvas(screenX, screenY) {
+    const rect = canvas.getBoundingClientRect();
+    const canvasX = (screenX - rect.left) / zoomLevel - panX;
+    const canvasY = (screenY - rect.top) / zoomLevel - panY;
+    return { x: canvasX, y: canvasY };
+},
 
         // Convierte coordenadas del canvas 2D a coordenadas de pantalla 2D
-        canvasToScreen(canvasX, canvasY) {
-             const rect = canvas.getBoundingClientRect();
-             const screenX = (canvasX + panX) * zoomLevel + rect.left;
-             const screenY = (canvasY + panY) * zoomLevel + rect.top;
-             return { x: screenX, y: screenY };
-        },
+canvasToScreen(canvasX, canvasY) {
+    const rect = canvas.getBoundingClientRect();
+    const screenX = (canvasX + panX) * zoomLevel + rect.left;
+    const screenY = (canvasY + panY) * zoomLevel + rect.top;
+    return { x: screenX, y: screenY };
+},
 
         // Convierte coordenadas de pantalla (del contenedor 3D) a coordenadas del mundo 3D en el plano Z=0
         screenToWorld3D(screenX, screenY) {
@@ -1713,16 +1714,18 @@
          },
 
         actualizarIndicadorOrigen() {
-             if (!originIndicator2D || !originLabel2D) return;
-             // Calcular posición en pantalla del origen del canvas (0,0)
-             const screenPos = Utilidades.canvasToScreen(0, 0);
-             originIndicator2D.style.left = `${screenPos.x}px`;
-             originIndicator2D.style.top = `${screenPos.y}px`;
-             originLabel2D.style.left = `${screenPos.x + 8}px`; // Posicionar etiqueta cerca
-             originLabel2D.style.top = `${screenPos.y - 12}px`;
-             originIndicator2D.style.display = 'block';
-             originLabel2D.style.display = 'block';
-         },
+    if (!originIndicator2D || !originLabel2D) return;
+    // Calcular posición en pantalla del origen del canvas (0,0)
+    const screenPos = Utilidades.canvasToScreen(0, 0);
+    originIndicator2D.style.left = `${screenPos.x}px`;
+    originIndicator2D.style.top = `${screenPos.y}px`;
+    originLabel2D.style.left = `${screenPos.x}px`; // Ajustar posición
+    originLabel2D.style.top = `${screenPos.y - 20}px`; // Mover más arriba
+    originIndicator2D.style.display = 'block';
+    originLabel2D.style.display = 'block';
+    // Actualizar el texto de la etiqueta con las coordenadas reales
+    originLabel2D.textContent = `0,0`;
+},
 
         actualizarInfoZoom() {
             // Podría mostrar el nivel de zoom en algún lugar si se desea
@@ -1996,7 +1999,19 @@
                 console.error("Contenedor 3D no encontrado.");
                 return false;
             }
-
+            
+			 try {
+        console.log("Intentando inicializar Three.js...");
+        // Verificar que THREE esté disponible
+        if (typeof THREE === 'undefined') {
+            throw new Error("THREE no está definido. Verifica las importaciones de Three.js");
+        }
+        
+        // Verificar que OrbitControls esté disponible
+        if (typeof THREE.OrbitControls === 'undefined') {
+            throw new Error("THREE.OrbitControls no está definido. Verifica la importación");
+        }
+			
             try {
                 // --- Escena ---
                 scene = new THREE.Scene();
@@ -2057,7 +2072,12 @@
                 this.inicializarEventos3D();
 
                 // --- Iniciar Bucle de Animación ---
-                this.animar();
+                this.animar = () => {
+    requestAnimationFrame(this.animar);
+    controls.update();
+    renderer.render(scene, camera);
+};
+this.animar();
                 escena3DInitializada = true;
                 console.log("Escena 3D inicializada.");
 
