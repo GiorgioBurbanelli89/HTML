@@ -746,14 +746,16 @@ screenToCanvas(screenX, screenY) {
     const rect = canvas.getBoundingClientRect();
     const canvasX = (screenX - rect.left) / zoomLevel - panX;
     const canvasY = (screenY - rect.top) / zoomLevel - panY;
+    console.log('screenToCanvas - Screen:', screenX, screenY, 'Canvas:', canvasX, canvasY, 'Zoom:', zoomLevel, 'Pan:', panX, panY, 'Rect:', rect.left, rect.top);
     return { x: canvasX, y: canvasY };
 },
 
-        // Convierte coordenadas del canvas 2D a coordenadas de pantalla 2D
+// Convierte coordenadas del canvas 2D a coordenadas de pantalla 2D
 canvasToScreen(canvasX, canvasY) {
     const rect = canvas.getBoundingClientRect();
     const screenX = (canvasX + panX) * zoomLevel + rect.left;
     const screenY = (canvasY + panY) * zoomLevel + rect.top;
+    console.log('canvasToScreen - Canvas:', canvasX, canvasY, 'Screen:', screenX, screenY, 'Zoom:', zoomLevel, 'Pan:', panX, panY, 'Rect:', rect.left, rect.top);
     return { x: screenX, y: screenY };
 },
 
@@ -1719,11 +1721,11 @@ canvasToScreen(canvasX, canvasY) {
     const screenPos = Utilidades.canvasToScreen(0, 0);
     originIndicator2D.style.left = `${screenPos.x}px`;
     originIndicator2D.style.top = `${screenPos.y}px`;
-    originLabel2D.style.left = `${screenPos.x}px`; // Ajustar posición
-    originLabel2D.style.top = `${screenPos.y - 20}px`; // Mover más arriba
     originIndicator2D.style.display = 'block';
+    originLabel2D.style.left = `${screenPos.x}px`; // Cambiado de +8px
+    originLabel2D.style.top = `${screenPos.y - 20}px`; // Cambiado de -12px a -20px
     originLabel2D.style.display = 'block';
-    // Actualizar el texto de la etiqueta con las coordenadas reales
+    // Texto explícito para el origen
     originLabel2D.textContent = `0,0`;
 },
 
@@ -1993,14 +1995,14 @@ canvasToScreen(canvasX, canvasY) {
     // Módulo de Escena 3D (Manejo de Three.js)
     // =========================================================================
     const Escena3D = {
-        inicializar() {
-            container3D = document.getElementById('container3D');
-            if (!container3D) {
-                console.error("Contenedor 3D no encontrado.");
-                return false;
-            }
-            
-			 try {
+inicializar() {
+    container3D = document.getElementById('container3D');
+    if (!container3D) {
+        console.error("Contenedor 3D no encontrado.");
+        return false;
+    }
+    
+    try {
         console.log("Intentando inicializar Three.js...");
         // Verificar que THREE esté disponible
         if (typeof THREE === 'undefined') {
@@ -2011,72 +2013,70 @@ canvasToScreen(canvasX, canvasY) {
         if (typeof THREE.OrbitControls === 'undefined') {
             throw new Error("THREE.OrbitControls no está definido. Verifica la importación");
         }
-			
-            try {
-                // --- Escena ---
-                scene = new THREE.Scene();
-                scene.background = new THREE.Color(0x111111); // Fondo oscuro
-
-                // --- Cámara ---
-                const aspect = container3D.clientWidth / container3D.clientHeight;
-                camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 2000);
-                camera.position.set(0, 150, 400); // Posición inicial más alejada y elevada
-                camera.lookAt(0, 0, 0); // Mirar al origen
-
-                // --- Renderizador ---
-                renderer = new THREE.WebGLRenderer({ antialias: true });
-                renderer.setSize(container3D.clientWidth, container3D.clientHeight);
-                container3D.appendChild(renderer.domElement);
-
-                // --- Controles ---
-                controls = new THREE.OrbitControls(camera, renderer.domElement);
-                controls.enableDamping = true; // Suavizar movimiento
-                controls.dampingFactor = 0.1;
-                controls.screenSpacePanning = false; // Panear en el plano XZ
-                controls.target.set(0, 0, 0); // Centrar controles en el origen
-                controls.maxPolarAngle = Math.PI / 2; // Limitar ángulo polar para no ver desde abajo
-
-                // --- Luces ---
-                const ambientLight = new THREE.AmbientLight(0x404040, 2); // Luz ambiental suave
-                scene.add(ambientLight);
-                const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
-                directionalLight.position.set(50, 100, 75);
-                scene.add(directionalLight);
-
-                // --- Plano de Referencia (Rejilla) ---
-                gridHelper3D = new THREE.GridHelper(
-                    Config.TAMANO_REJILLA_3D,
-                    Config.DIVISIONES_REJILLA_3D,
-                    Config.COLOR_CENTRO_3D,
-                    Config.COLOR_REJILLA_3D
-                );
-                scene.add(gridHelper3D);
-
-                // --- Plano Invisible para Raycasting ---
-                // Crear un plano geométrico que coincida con la rejilla para intersecciones
-                const planeGeometry = new THREE.PlaneGeometry(Config.TAMANO_REJILLA_3D, Config.TAMANO_REJILLA_3D);
-                const planeMaterial = new THREE.MeshBasicMaterial({
-                    visible: false, // Hacerlo invisible
-                    side: THREE.DoubleSide // Detectar clics desde ambos lados
-                });
-                plane3D = new THREE.Mesh(planeGeometry, planeMaterial);
-                plane3D.rotation.x = -Math.PI / 2; // Alinear con el GridHelper en el plano XZ
-                scene.add(plane3D);
-
-
-                // --- Ejes Coordenados (Ayuda Visual) ---
-                const axesHelper = new THREE.AxesHelper(100); // Longitud de los ejes
-                scene.add(axesHelper);
-
-                // --- Eventos 3D ---
-                this.inicializarEventos3D();
-
-                // --- Iniciar Bucle de Animación ---
-                this.animar = () => {
-    requestAnimationFrame(this.animar);
-    controls.update();
-    renderer.render(scene, camera);
-};
+        
+        // --- Escena ---
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x111111); // Fondo oscuro
+        
+        // --- Cámara ---
+        const aspect = container3D.clientWidth / container3D.clientHeight;
+        camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 2000);
+        camera.position.set(0, 150, 400); // Posición inicial más alejada y elevada
+        camera.lookAt(0, 0, 0); // Mirar al origen
+        
+        // --- Renderizador ---
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(container3D.clientWidth, container3D.clientHeight);
+        container3D.appendChild(renderer.domElement);
+        
+        // --- Controles ---
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true; // Suavizar movimiento
+        controls.dampingFactor = 0.1;
+        controls.screenSpacePanning = false; // Panear en el plano XZ
+        controls.target.set(0, 0, 0); // Centrar controles en el origen
+        controls.maxPolarAngle = Math.PI / 2; // Limitar ángulo polar para no ver desde abajo
+        
+        // --- Luces ---
+        const ambientLight = new THREE.AmbientLight(0x404040, 2); // Luz ambiental suave
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+        directionalLight.position.set(50, 100, 75);
+        scene.add(directionalLight);
+        
+        // --- Plano de Referencia (Rejilla) ---
+        gridHelper3D = new THREE.GridHelper(
+            Config.TAMANO_REJILLA_3D,
+            Config.DIVISIONES_REJILLA_3D,
+            Config.COLOR_CENTRO_3D,
+            Config.COLOR_REJILLA_3D
+        );
+        scene.add(gridHelper3D);
+        
+        // --- Plano Invisible para Raycasting ---
+        // Crear un plano geométrico que coincida con la rejilla para intersecciones
+        const planeGeometry = new THREE.PlaneGeometry(Config.TAMANO_REJILLA_3D, Config.TAMANO_REJILLA_3D);
+        const planeMaterial = new THREE.MeshBasicMaterial({
+            visible: false, // Hacerlo invisible
+            side: THREE.DoubleSide // Detectar clics desde ambos lados
+        });
+        plane3D = new THREE.Mesh(planeGeometry, planeMaterial);
+        plane3D.rotation.x = -Math.PI / 2; // Alinear con el GridHelper en el plano XZ
+        scene.add(plane3D);
+        
+        // --- Ejes Coordenados (Ayuda Visual) ---
+        const axesHelper = new THREE.AxesHelper(100); // Longitud de los ejes
+        scene.add(axesHelper);
+        
+        // --- Eventos 3D ---
+        this.inicializarEventos3D();
+        
+        // --- Iniciar Bucle de Animación ---
+        this.animar = () => {
+            requestAnimationFrame(this.animar);
+            controls.update();
+            renderer.render(scene, camera);
+        };
 this.animar();
                 escena3DInitializada = true;
                 console.log("Escena 3D inicializada.");
@@ -2092,12 +2092,47 @@ this.animar();
             }
         },
 
-        inicializarEventos3D() {
-            container3D.addEventListener('pointerdown', this.onPointerDown.bind(this));
-            container3D.addEventListener('pointermove', this.onPointerMove.bind(this));
-            // container3D.addEventListener('pointerup', this.onPointerUp.bind(this)); // No necesario si usamos down para ambos puntos
-            // container3D.addEventListener('contextmenu', (e) => e.preventDefault()); // Prevenir menú contextual
-        },
+// En el módulo Escena3D, añade una función de limpieza
+limpiarRecursos() {
+    if (renderer) {
+        renderer.dispose();
+    }
+    
+    if (scene) {
+        scene.traverse((object) => {
+            if (object.geometry) object.geometry.dispose();
+            if (object.material) {
+                if (Array.isArray(object.material)) {
+                    object.material.forEach(material => material.dispose());
+                } else {
+                    object.material.dispose();
+                }
+            }
+        });
+    }
+    
+    // Detener el bucle de animación
+    if (this.animationFrameId) {
+        cancelAnimationFrame(this.animationFrameId);
+        this.animationFrameId = null;
+    }
+},
+
+
+     
+	 // En el módulo Escena3D
+inicializarEventos3D() {
+    if (!container3D) return;
+    
+    // Eliminar eventos existentes para evitar duplicados
+    container3D.removeEventListener('pointerdown', this.onPointerDown.bind(this));
+    container3D.removeEventListener('pointermove', this.onPointerMove.bind(this));
+    
+    // Añadir nuevos manejadores de eventos
+    container3D.addEventListener('pointerdown', this.onPointerDown.bind(this));
+    container3D.addEventListener('pointermove', this.onPointerMove.bind(this));
+    container3D.addEventListener('contextmenu', e => e.preventDefault());
+},
 
         onPointerDown(event) {
             // Permitir que OrbitControls funcione si no estamos en modo línea
@@ -2216,32 +2251,7 @@ this.animar();
             renderer.setSize(container3D.clientWidth, container3D.clientHeight);
         },
 
-        toggleVista(visible) {
-            if (!container3D || !btnToggle3D) return;
 
-            if (visible) {
-                container3D.style.display = 'block';
-                btnToggle3D.textContent = 'Desactivar 3D';
-                btnToggle3D.classList.add('active');
-                this.onWindowResize(); // Ajustar tamaño al mostrar
-                if (!escena3DInitializada) {
-                    if(this.inicializar()) {
-                         Dibujo.actualizarTodasLasLineas3D(); // Dibujar formas 2D existentes en 3D
-                    }
-                } else {
-                     Dibujo.actualizarTodasLasLineas3D(); // Asegurar sincronización al reactivar
-                }
-            } else {
-                container3D.style.display = 'none';
-                btnToggle3D.textContent = 'Activar 3D';
-                btnToggle3D.classList.remove('active');
-                 // Cancelar dibujo 3D si se oculta la ventana
-                 if (isDrawing3D) {
-                    this.cancelarDibujo3D();
-                 }
-            }
-        }
-    };
 
     // =========================================================================
     // Módulo de Controles UI (Manejo de botones y eventos principales)
