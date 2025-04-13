@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -175,23 +176,186 @@
             left: -5px;
             top: 4px;
         }
+
+        .form-group {
+            margin: 8px 0;
+        }
+
+        label {
+            display: inline-block;
+            margin-right: 5px;
+        }
+
+        /* Estilos para los controles de entrada accesibles */
+        .input-accesible {
+            border: 1px solid #666;
+            width: 70px;
+            padding: 5px;
+            border-radius: 3px;
+        }
+
+        .input-x {
+            color: white;
+            background-color: #007bff;
+        }
+
+        .input-y {
+            color: black;
+            background-color: #eee;
+        }
+
+        .snap-option {
+            margin: 5px 0;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.7);
+        }
+
+        .modal-content {
+            background-color: #2c3e50;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 5px;
+            color: white;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #555;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: white;
+        }
+
+        .modal-section {
+            margin-bottom: 15px;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+
+        .action-button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            color: white;
+        }
+
+        .btn-primary {
+            background-color: #3498db;
+        }
+
+        .btn-success {
+            background-color: #2ecc71;
+        }
+
+        /* Estilos para atajos de teclado */
+        .shortcuts-list {
+            margin-bottom: 15px;
+        }
+
+        .shortcut-item {
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Tooltip accesible */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 120px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -60px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Mejoras de contraste para accesibilidad */
+        .btn-icono span {
+            font-weight: bold;
+        }
+
+        /* Añadir focus visual para accesibilidad */
+        button:focus, input:focus, textarea:focus {
+            outline: 2px solid #3498db;
+            outline-offset: 2px;
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
     </style>
 </head>
 <body>
     <h3>Editor de Dibujo CAD Básico</h3>
     
     <!-- Controles de zoom -->
-    <div class="zoom-controls">
-        <button class="zoom-button" id="zoomIn">+</button>
-        <button class="zoom-button" id="zoomOut">-</button>
-        <button class="zoom-button" id="zoomFit">□</button>
+    <div class="zoom-controls" role="group" aria-label="Controles de zoom">
+        <button class="zoom-button" id="zoomIn" aria-label="Aumentar zoom">+</button>
+        <button class="zoom-button" id="zoomOut" aria-label="Reducir zoom">-</button>
+        <button class="zoom-button" id="zoomFit" aria-label="Ajustar zoom a ventana">□</button>
     </div>
-    <div id="originIndicator2D" class="origin-indicator"></div>
-    <div id="cursor3D" class="cursor3d"></div>
+    <div id="originIndicator2D" class="origin-indicator" aria-hidden="true"></div>
+    <div id="cursor3D" class="cursor3d" aria-hidden="true"></div>
     
     <!-- Contenedor del canvas 2D -->
     <div class="canvas-container">
-        <canvas width="800" height="500" tabindex="0" id="lienzo"></canvas>
+        <canvas width="800" height="500" tabindex="0" id="lienzo" aria-label="Área de dibujo CAD 2D"></canvas>
         <div id="infoBar" style="padding: 5px; width: 100%; bottom: 0; left: 0; font-family: monospace; font-size: 12px; position: absolute; background-color: rgba(0, 0, 0, 0.7); color: white; display: flex; justify-content: space-between;">
             <div id="coordCanvas">X: 0, Y: 0</div>
             <div id="snapInfo"></div>
@@ -201,16 +365,19 @@
     
     <!-- Entrada de dimensiones -->
     <div id="entradaDimensiones" style="padding: 5px; border: 1px solid #999; left: 200px; bottom: 5px; display: none; position: absolute; background-color: rgba(0, 0, 0, 0.9); color: white;">
-        <label>Distancia: <input id="inputDistancia" style="width: 80px; background-color: #333; color: white; border: 1px solid #666;" type="number" step="0.1"></label>
+        <div class="form-group">
+            <label for="inputDistancia">Distancia:</label>
+            <input id="inputDistancia" style="width: 80px; background-color: #333; color: white; border: 1px solid #666;" type="number" step="0.1" aria-label="Introduzca la distancia">
+        </div>
         <button id="btnAplicarDimensiones">Aplicar</button>
     </div>
     
     <!-- Indicadores visuales -->
-    <div id="distanciaVisual" style="padding: 2px 5px; border-radius: 3px; color: white; font-family: monospace; font-size: 12px; display: none; position: absolute; background-color: rgba(50, 50, 255, 0.8);"></div>
-    <div id="anguloVisual" style="padding: 2px 5px; border-radius: 10px; font-family: monospace; font-size: 10px; display: none; position: absolute; background-color: rgba(0, 0, 0, 0.7); color: white;"></div>
+    <div id="distanciaVisual" style="padding: 2px 5px; border-radius: 3px; color: white; font-family: monospace; font-size: 12px; display: none; position: absolute; background-color: rgba(50, 50, 255, 0.8);" aria-hidden="true"></div>
+    <div id="anguloVisual" style="padding: 2px 5px; border-radius: 10px; font-family: monospace; font-size: 10px; display: none; position: absolute; background-color: rgba(0, 0, 0, 0.7); color: white;" aria-hidden="true"></div>
     
     <!-- Contenedor para la vista 3D -->
-    <div id="container3D" style="display: none; width: 800px; height: 500px; margin-top: 15px;"></div>
+    <div id="container3D" style="display: none; width: 800px; height: 500px; margin-top: 15px;" aria-label="Área de visualización 3D"></div>
     
     <!-- Botones para vistas -->
     <div style="margin-top: 10px; text-align: center;">
@@ -221,29 +388,35 @@
     <!-- Controles y herramientas -->
     <div style="margin-top: 10px;">
         <div id="coordenadasPrecisas" style="padding: 5px; border-radius: 3px; left: 10px; bottom: 45px; color: white; display: flex; position: absolute; align-items: center; background-color: #555;">
-            <span style="margin-right: 10px;">Precise primer punto:</span>
-            <input id="inputX" style="border: 1px solid #666; width: 70px; color: white; margin-right: 5px; background-color: #007bff;" type="number" step="0.1" value="0">
-            <input id="inputY" style="border: 1px solid #666; width: 70px; color: black; background-color: #eee;" type="number" step="0.1" value="0">
+            <span style="margin-right: 10px;">Precisar primer punto:</span>
+            <div class="form-group">
+                <label for="inputX" class="sr-only">Coordenada X</label>
+                <input id="inputX" class="input-accesible input-x" type="number" step="0.1" value="0" aria-label="Coordenada X">
+            </div>
+            <div class="form-group">
+                <label for="inputY" class="sr-only">Coordenada Y</label>
+                <input id="inputY" class="input-accesible input-y" type="number" step="0.1" value="0" aria-label="Coordenada Y">
+            </div>
         </div>
         
         <!-- Botones de herramientas -->
-        <button title="Elipse" class="btn-icono" id="btnElipse">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+        <button title="Elipse" class="btn-icono" id="btnElipse" aria-label="Herramienta Elipse">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
                 <ellipse fill="none" stroke="currentColor" stroke-width="2" cx="12" cy="12" rx="8" ry="5" />
                 <circle fill="#3498db" cx="12" cy="12" r="2" />
             </svg>
             <span>Elipse</span>
         </button>
-        <button title="Línea" class="btn-icono active" id="btnLinea">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+        <button title="Línea" class="btn-icono active" id="btnLinea" aria-label="Herramienta Línea">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
                 <line stroke="currentColor" stroke-width="2" x1="4" y1="20" x2="20" y2="4" />
                 <circle fill="#3498db" cx="4" cy="20" r="2" />
                 <circle fill="#3498db" cx="20" cy="4" r="2" />
             </svg>
             <span>Línea</span>
         </button>
-        <button title="Polilínea" class="btn-icono" id="btnPolilinea">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+        <button title="Polilínea" class="btn-icono" id="btnPolilinea" aria-label="Herramienta Polilínea">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
                 <path fill="none" stroke="currentColor" stroke-width="2" d="M 4 20 L 10 10 L 20 14" />
                 <circle fill="#3498db" cx="4" cy="20" r="2" />
                 <circle fill="#3498db" cx="10" cy="10" r="2" />
@@ -251,24 +424,24 @@
             </svg>
             <span>Polilínea</span>
         </button>
-        <button title="Rectángulo" class="btn-icono" id="btnRectangulo">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+        <button title="Rectángulo" class="btn-icono" id="btnRectangulo" aria-label="Herramienta Rectángulo">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
                 <rect fill="none" stroke="currentColor" stroke-width="2" x="4" y="4" width="16" height="16" />
                 <circle fill="#3498db" cx="4" cy="4" r="2" />
                 <circle fill="#3498db" cx="20" cy="20" r="2" />
             </svg>
             <span>Rectángulo</span>
         </button>
-        <button title="Círculo" class="btn-icono" id="btnCirculo">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+        <button title="Círculo" class="btn-icono" id="btnCirculo" aria-label="Herramienta Círculo">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
                 <circle fill="none" stroke="currentColor" stroke-width="2" cx="12" cy="12" r="8" />
                 <circle fill="#3498db" cx="12" cy="12" r="2" />
                 <line stroke="#3498db" stroke-width="1" x1="12" y1="12" x2="20" y2="12" />
             </svg>
             <span>Círculo</span>
         </button>
-        <button title="Arco" class="btn-icono" id="btnArco">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+        <button title="Arco" class="btn-icono" id="btnArco" aria-label="Herramienta Arco">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
                 <path fill="none" stroke="currentColor" stroke-width="2" d="M 4 20 Q 12 4 20 20" />
                 <circle fill="#3498db" cx="4" cy="20" r="2" />
                 <circle fill="#3498db" cx="20" cy="20" r="2" />
@@ -276,73 +449,129 @@
             </svg>
             <span>Arco</span>
         </button>
-        <button title="Mano" class="btn-icono" id="btnMano">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+        <button title="Mano" class="btn-icono" id="btnMano" aria-label="Herramienta Mano Alzada">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
                 <path fill="none" stroke="currentColor" stroke-width="2" d="M7,11 C7,8 9,7 11,7 C13,7 13,8 13,9 L13,16 C13,16 14,16 14,14 L14,8 C14,6 16,6 16,8 L16,16 C16,16 17,16 17,14 L17,10 C17,8 19,8 19,10 L19,17 C19,21 17,22 14,22 C11,22 7,22 7,17 Z" />
             </svg>
             <span>Mano</span>
         </button>
-        <button id="btnDimension">Entrada Dimensiones</button>
-        <button id="btnRestriccion">Restricción 90° (OFF)</button>
-        <button id="btnSnap">Snap (OFF)</button>
+        <button id="btnDimension" aria-label="Activar entrada de dimensiones">Entrada Dimensiones</button>
+        <button id="btnRestriccion" aria-label="Activar restricción de ángulo 90 grados">Restricción 90° (OFF)</button>
+        <button id="btnSnap" aria-label="Activar snap a objetos">Snap (OFF)</button>
         
         <!-- Menú de snap -->
-        <div id="menuSnapObjetos" style="padding: 10px; border-radius: 5px; color: white; display: none; position: absolute; z-index: 1000; box-shadow: 0px 2px 10px rgba(0,0,0,0.3); background-color: #2c3e50;">
-            <div><input id="snapPuntoFinal" type="checkbox" checked><label for="snapPuntoFinal"> Punto final</label></div>
-            <div><input id="snapPuntoMedio" type="checkbox" checked><label for="snapPuntoMedio"> Punto medio</label></div>
-            <div><input id="snapCentro" type="checkbox" checked><label for="snapCentro"> Centro</label></div>
-            <div><input id="snapCentroGeometrico" type="checkbox"><label for="snapCentroGeometrico"> Centro geométrico</label></div>
-            <div><input id="snapPunto" type="checkbox" checked><label for="snapPunto"> Punto</label></div>
-            <div><input id="snapCuadrante" type="checkbox" checked><label for="snapCuadrante"> Cuadrante</label></div>
-            <div><input id="snapInterseccion" type="checkbox"><label for="snapInterseccion"> Intersección</label></div>
-            <div><input id="snapExtension" type="checkbox"><label for="snapExtension"> Extensión</label></div>
-            <div><input id="snapInsercion" type="checkbox"><label for="snapInsercion"> Inserción</label></div>
-            <div><input id="snapPerpendicular" type="checkbox"><label for="snapPerpendicular"> Perpendicular</label></div>
-            <div><input id="snapTangente" type="checkbox"><label for="snapTangente"> Tangente</label></div>
-            <div><input id="snapCercano" type="checkbox"><label for="snapCercano"> Cercano</label></div>
-            <div><input id="snapInterseccionFicticia" type="checkbox"><label for="snapInterseccionFicticia"> Intersección ficticia</label></div>
-            <div><input id="snapParalelo" type="checkbox"><label for="snapParalelo"> Paralelo</label></div>
+        <div id="menuSnapObjetos" style="padding: 10px; border-radius: 5px; color: white; display: none; position: absolute; z-index: 1000; box-shadow: 0px 2px 10px rgba(0,0,0,0.3); background-color: #2c3e50;" role="menu" aria-label="Opciones de snap">
+            <div class="snap-option">
+                <input id="snapPuntoFinal" type="checkbox" checked>
+                <label for="snapPuntoFinal">Punto final</label>
+            </div>
+            <div class="snap-option">
+                <input id="snapPuntoMedio" type="checkbox" checked>
+                <label for="snapPuntoMedio">Punto medio</label>
+            </div>
+            <div class="snap-option">
+                <input id="snapCentro" type="checkbox" checked>
+                <label for="snapCentro">Centro</label>
+            </div>
+            <div class="snap-option">
+                <input id="snapCentroGeometrico" type="checkbox">
+                <label for="snapCentroGeometrico">Centro geométrico</label>
+            </div>
+            <div class="snap-option">
+                <input id="snapPunto" type="checkbox" checked>
+                <label for="snapPunto">Punto</label>
+            </div>
+            <div class="snap-option">
+                <input id="snapCuadrante" type="checkbox" checked>
+                <label for="snapCuadrante">Cuadrante</label>
+            </div>
+            <div class="snap-option">
+                <input id="snapInterseccion" type="checkbox">
+                <label for="snapInterseccion">Intersección</label>
+            </div>
+            <div class="snap-option">
+                <input id="snapExtension" type="checkbox">
+                <label for="snapExtension">Extensión</label>
+            </div>
+            <div class="snap-option">
+                <input id="snapInsercion" type="checkbox">
+                <label for="snapInsercion">Inserción</label>
+            </div>
+            <div class="snap-option">
+                <input id="snapPerpendicular" type="checkbox">
+                <label for="snapPerpendicular">Perpendicular</label>
+            </div>
+            <div class="snap-option">
+                <input id="snapTangente" type="checkbox">
+                <label for="snapTangente">Tangente</label>
+            </div>
+            <div class="snap-option">
+                <input id="snapCercano" type="checkbox">
+                <label for="snapCercano">Cercano</label>
+            </div>
+            <div class="snap-option">
+                <input id="snapInterseccionFicticia" type="checkbox">
+                <label for="snapInterseccionFicticia">Intersección ficticia</label>
+            </div>
+            <div class="snap-option">
+                <input id="snapParalelo" type="checkbox">
+                <label for="snapParalelo">Paralelo</label>
+            </div>
         </div>
         
         <!-- Modal de atajos -->
-        <div id="modalAtajos" style="padding: 15px; border-radius: 5px; left: 50%; top: 50%; width: 90%; color: white; display: none; position: absolute; z-index: 1000; max-width: 400px; box-shadow: 0px 2px 15px rgba(0,0,0,0.4); transform: translate(-50%, -50%); background-color: #2c3e50;">
-            <h3 style="padding-bottom: 8px; margin-top: 0px; border-bottom: 1px solid #eee;">Atajos de Teclado</h3>
-            <div style="margin-bottom: 15px;">
-                <div style="margin-bottom: 8px; display: flex; justify-content: space-between;"><strong>ESC</strong><span>Cancelar operación actual</span></div>
-                <div style="margin-bottom: 8px; display: flex; justify-content: space-between;"><strong>F8</strong><span>Activar/desactivar restricción 90°</span></div>
-                <div style="margin-bottom: 8px; display: flex; justify-content: space-between;"><strong>Ctrl+Z</strong><span>Deshacer</span></div>
+        <div id="modalAtajos" class="modal" aria-labelledby="tituloAtajos" aria-hidden="true">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="tituloAtajos">Atajos de Teclado</h3>
+                    <button id="cerrarModalAtajos" class="close-btn" aria-label="Cerrar ventana de atajos">×</button>
+                </div>
+                <div class="shortcuts-list">
+                    <div class="shortcut-item"><strong>ESC</strong><span>Cancelar operación actual</span></div>
+                    <div class="shortcut-item"><strong>F8</strong><span>Activar/desactivar restricción 90°</span></div>
+                    <div class="shortcut-item"><strong>Ctrl+Z</strong><span>Deshacer</span></div>
+                </div>
+                <button id="btnCerrarAtajos" class="action-button btn-primary" style="float: right;">Cerrar</button>
+                <div style="clear: both;"></div>
             </div>
-            <button id="cerrarModalAtajos" style="background: #3498db; padding: 5px 10px; border-radius: 3px; border: none; color: white; float: right; cursor: pointer;">Cerrar</button>
-            <div style="clear: both;"></div>
         </div>
         
-        <button id="btnRejilla">Rejilla (OFF)</button>
-        <button id="btnSnapGrid">Snap a Rejilla (OFF)</button>
-        <button id="btnDeshacer">Deshacer (Ctrl+Z)</button>
-        <button id="btnLimpiar">Limpiar lienzo</button>
-        <button id="btnGuardarSVG">Guardar SVG</button>
-        <button id="btnImportarSVG">Importar SVG</button>
-        <textarea id="svgOutput" style="width: 100%; height: 150px; font-family: monospace; margin-top: 10px; display: none;"></textarea>
-        <button id="btnAtajos">Atajos de Teclado</button>
+        <button id="btnRejilla" aria-label="Activar rejilla visual">Rejilla (OFF)</button>
+        <button id="btnSnapGrid" aria-label="Activar snap a rejilla">Snap a Rejilla (OFF)</button>
+        <button id="btnDeshacer" aria-label="Deshacer última acción">Deshacer (Ctrl+Z)</button>
+        <button id="btnLimpiar" aria-label="Limpiar todo el lienzo">Limpiar lienzo</button>
+        <button id="btnGuardarSVG" aria-label="Guardar dibujo como SVG">Guardar SVG</button>
+        <button id="btnImportarSVG" aria-label="Importar archivo SVG">Importar SVG</button>
+        <div class="form-group" style="margin-top: 10px; display: none;">
+            <label for="svgOutput" class="sr-only">Código SVG generado</label>
+            <textarea id="svgOutput" style="width: 100%; height: 150px; font-family: monospace; display: none;" aria-label="Código SVG generado"></textarea>
+        </div>
+        <button id="btnAtajos" aria-label="Mostrar atajos de teclado">Atajos de Teclado</button>
         
         <!-- Modal para importar SVG -->
-        <div id="modalImportarSVG" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
-            <div style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 600px; border-radius: 5px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h2 style="margin: 0;">Importar SVG</h2>
-                    <button id="cerrarModalImportarSVG" style="background: none; border: none; font-size: 24px; cursor: pointer;">×</button>
+        <div id="modalImportarSVG" class="modal" aria-labelledby="tituloImportarSVG" aria-hidden="true">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="tituloImportarSVG">Importar SVG</h2>
+                    <button id="cerrarModalImportarSVG" class="close-btn" aria-label="Cerrar ventana de importación">×</button>
                 </div>
-                <div style="margin-bottom: 15px;">
+                <div class="modal-section">
                     <h3>Cargar archivo SVG</h3>
-                    <input type="file" id="inputArchivoSVG" accept=".svg">
+                    <div class="form-group">
+                        <label for="inputArchivoSVG" class="sr-only">Seleccionar archivo SVG</label>
+                        <input type="file" id="inputArchivoSVG" accept=".svg" aria-label="Seleccionar archivo SVG para importar">
+                    </div>
                 </div>
-                <div style="margin-bottom: 15px;">
+                <div class="modal-section">
                     <h3>Pegar código SVG</h3>
-                    <textarea id="textareaSVG" rows="10" style="width: 100%; resize: vertical;"></textarea>
+                    <div class="form-group">
+                        <label for="textareaSVG" class="sr-only">Código SVG</label>
+                        <textarea id="textareaSVG" rows="10" style="width: 100%; resize: vertical;" aria-label="Pegar código SVG aquí"></textarea>
+                    </div>
                 </div>
-                <div style="display: flex; justify-content: space-between;">
-                    <button id="btnPegarSVG" style="background-color: #3498db; color: white; border: none; padding: 10px 15px; border-radius: 3px; cursor: pointer;">Pegar SVG</button>
-                    <button id="btnCargarSVG" style="background-color: #2ecc71; color: white; border: none; padding: 10px 15px; border-radius: 3px; cursor: pointer;">Cargar SVG</button>
+                <div class="action-buttons">
+                    <button id="btnPegarSVG" class="action-button btn-primary">Pegar SVG</button>
+                    <button id="btnCargarSVG" class="action-button btn-success">Cargar SVG</button>
                 </div>
             </div>
         </div>
@@ -356,7 +585,10 @@ const Config = {
     MAX_ZOOM: 10,
     ZOOM_SPEED: 0.1,
     MAX_HISTORIAL: 20,
-    TAMANO_REJILLA: 20
+    TAMANO_REJILLA: 20,
+    COLOR_FONDO: '#222222',
+    MOSTRAR_REJILLA: true,
+    MOSTRAR_INDICADOR_ORIGEN: true
 };
 
 // Variables globales
@@ -414,6 +646,8 @@ const Utilidades = {
             fontFamily: "Arial, sans-serif"
         });
         mensajeElement.textContent = mensaje;
+        mensajeElement.setAttribute('role', 'status');
+        mensajeElement.setAttribute('aria-live', 'polite');
         document.body.appendChild(mensajeElement);
         setTimeout(() => {
             mensajeElement.style.transition = "opacity 0.5s";
@@ -433,15 +667,15 @@ const Utilidades = {
     restringirAngulo(x1, y1, x2, y2) {
         if (!restriccionAngulo) return {x: x2, y: y2};
         
-        var angulo = Math.atan2(y2 - y1, x2 - x1);
-        var angulos = [0, Math.PI/2, Math.PI, -Math.PI/2];
-        var anguloMasCercano = angulos.reduce(function(prev, curr) {
+        const angulo = Math.atan2(y2 - y1, x2 - x1);
+        const angulos = [0, Math.PI/2, Math.PI, -Math.PI/2];
+        const anguloMasCercano = angulos.reduce(function(prev, curr) {
             return (Math.abs(curr - angulo) < Math.abs(prev - angulo)) ? curr : prev;
         });
         
-        var distancia = this.calcularDistancia(x1, y1, x2, y2);
-        var newX = x1 + Math.cos(anguloMasCercano) * distancia;
-        var newY = y1 + Math.sin(anguloMasCercano) * distancia;
+        const distancia = this.calcularDistancia(x1, y1, x2, y2);
+        const newX = x1 + Math.cos(anguloMasCercano) * distancia;
+        const newY = y1 + Math.sin(anguloMasCercano) * distancia;
         
         return {x: newX, y: newY};
     },
@@ -449,29 +683,70 @@ const Utilidades = {
     ajustarARejilla(x, y) {
         if (!snapToGridActivo) return {x: x, y: y};
         
-        var gridX = Math.round(x / Config.TAMANO_REJILLA) * Config.TAMANO_REJILLA;
-        var gridY = Math.round(y / Config.TAMANO_REJILLA) * Config.TAMANO_REJILLA;
+        const gridX = Math.round(x / Config.TAMANO_REJILLA) * Config.TAMANO_REJILLA;
+        const gridY = Math.round(y / Config.TAMANO_REJILLA) * Config.TAMANO_REJILLA;
         
         return {x: gridX, y: gridY};
+    },
+    
+    registrarEventos(elementId, eventos) {
+        const elemento = document.getElementById(elementId);
+        if (!elemento) {
+            console.warn(`Elemento con ID '${elementId}' no encontrado`);
+            return;
+        }
+        
+        Object.entries(eventos).forEach(([evento, manejador]) => {
+            elemento.addEventListener(evento, manejador);
+        });
+    },
+    
+    formatearNumero(num, decimales = 2) {
+        return Number(num.toFixed(decimales));
+    },
+    
+    crearElementoUI(tipo, atributos = {}, estilos = {}, eventos = {}) {
+        const elemento = document.createElement(tipo);
+        
+        // Aplicar atributos
+        Object.entries(atributos).forEach(([attr, valor]) => {
+            if (attr === 'textContent') {
+                elemento.textContent = valor;
+            } else if (attr === 'innerHTML') {
+                elemento.innerHTML = valor;
+            } else {
+                elemento.setAttribute(attr, valor);
+            }
+        });
+        
+        // Aplicar estilos
+        Object.assign(elemento.style, estilos);
+        
+        // Registrar eventos
+        Object.entries(eventos).forEach(([evento, manejador]) => {
+            elemento.addEventListener(evento, manejador);
+        });
+        
+        return elemento;
     }
 };
 
 // Módulo para Canvas 2D
 const Canvas2D = {
     inicializar() {
-	// Añadir console.log para depuración
         console.log("Iniciando Canvas2D...");
         canvas = document.getElementById("lienzo");
         if (!canvas) {
             console.error("Canvas no encontrado");
             return false;
         }
-// Modificar esta línea para incluir willReadFrequently
-    ctx = canvas.getContext("2d", { willReadFrequently: true });
-    if (!ctx) {
-        console.error("No se pudo obtener el contexto 2D");
-        return false;
-    }
+        
+        // Modificar esta línea para incluir willReadFrequently
+        ctx = canvas.getContext("2d", { willReadFrequently: true });
+        if (!ctx) {
+            console.error("No se pudo obtener el contexto 2D");
+            return false;
+        }
         
         // Referencias a elementos de la interfaz
         coordsElement = document.getElementById("coordCanvas");
@@ -484,8 +759,7 @@ const Canvas2D = {
         distanciaVisualElement = document.getElementById("distanciaVisual");
         
         // Crear elementos visuales dinámicos
-        ortoVisualElement = document.createElement("div");
-        Object.assign(ortoVisualElement.style, {
+        ortoVisualElement = Utilidades.crearElementoUI('div', {}, {
             position: "absolute",
             display: "none",
             fontFamily: "monospace",
@@ -495,10 +769,10 @@ const Canvas2D = {
             padding: "2px 5px",
             borderRadius: "3px"
         });
+        
         canvas.parentElement.appendChild(ortoVisualElement);
         
-        anguloInfoElement = document.createElement("div");
-        Object.assign(anguloInfoElement.style, {
+        anguloInfoElement = Utilidades.crearElementoUI('div', {}, {
             position: "absolute",
             display: "none",
             fontFamily: "monospace",
@@ -508,326 +782,335 @@ const Canvas2D = {
             padding: "2px 5px",
             borderRadius: "3px"
         });
+        
         canvas.parentElement.appendChild(anguloInfoElement);
         
         this.inicializarConfiguracion();
         this.inicializarPanoramica();
         this.inicializarZoom();
+        
+        // Añadir clase de accesibilidad para lectores de pantalla
+        canvas.setAttribute('aria-roledescription', 'editor CAD');
+        
         return true;
     },
 
-// Función para inicializar manualmente
- inicializarManualmente() {
-    console.log("Inicializando manualmente...");
-    try {
-        // Intenta inicializar el canvas 2D
-        if (Canvas2D && typeof Canvas2D.inicializar === 'function') {
-            console.log("Llamando a Canvas2D.inicializar()");
-            Canvas2D.inicializar();
-        } else {
-            console.error("Canvas2D no está definido o inicializar no es una función");
+    // Función para inicializar manualmente
+    inicializarManualmente() {
+        console.log("Inicializando manualmente...");
+        try {
+            // Intenta inicializar el canvas 2D
+            if (Canvas2D && typeof Canvas2D.inicializar === 'function') {
+                console.log("Llamando a Canvas2D.inicializar()");
+                if (!Canvas2D.inicializar()) {
+                    throw new Error("Falló la inicialización del Canvas2D");
+                }
+            } else {
+                console.error("Canvas2D no está definido o inicializar no es una función");
+            }
+            
+            // Intenta inicializar los controles
+            if (Controles && typeof Controles.inicializar === 'function') {
+                console.log("Llamando a Controles.inicializar()");
+                Controles.inicializar();
+            } else {
+                console.error("Controles no está definido o inicializar no es una función");
+            }
+            
+            console.log("Inicialización manual completada exitosamente");
+            Utilidades.mostrarMensajeTemporalEstado("Editor CAD inicializado correctamente");
+        } catch (e) {
+            console.error("Error durante la inicialización manual:", e);
+            Utilidades.mostrarMensajeTemporalEstado("Error durante la inicialización: " + e.message);
         }
-        
-        // Intenta inicializar los controles
-        if (Controles && typeof Controles.inicializar === 'function') {
-            console.log("Llamando a Controles.inicializar()");
-            Controles.inicializar();
-        }
-    } catch (e) {
-        console.error("Error durante la inicialización manual:", e);
-    }
-},
-
-inicializarConfiguracion() {
-    console.log("Iniciando configuración del Canvas...");
+    },
     
-    try {
-        // Verificación adicional de contexto
-        if (!ctx) {
-            console.error("Contexto del canvas es nulo");
+    inicializarConfiguracion() {
+        console.log("Iniciando configuración del Canvas...");
+        
+        try {
+            // Verificación adicional de contexto
+            if (!ctx) {
+                console.error("Contexto del canvas es nulo");
+                return false;
+            }
+
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = "#ffffff";
+            ctx.fillStyle = "#ff0000";
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            console.log(`Canvas dimensiones: ${canvas.width} x ${canvas.height}`);
+            
+            // Inicializar snapPuntos con el origen
+            snapPuntos = [{ 
+                x: 400, 
+                y: 250, 
+                tipo: "origen", 
+                forma: { tipo: "punto" } 
+            }];
+            
+            // Añadir etiqueta del origen
+            const oldLabel = document.querySelector('.origen-label');
+            if (oldLabel) oldLabel.remove();
+            
+            const origenLabel = Utilidades.crearElementoUI('div', 
+                { 
+                    className: "origen-label",
+                    textContent: "Origen (0,0)",
+                    role: "note", 
+                    "aria-label": "Origen del sistema de coordenadas" 
+                }, 
+                {
+                    position: "absolute",
+                    left: "410px",
+                    top: "235px",
+                    fontFamily: "monospace",
+                    fontSize: "12px",
+                    color: "yellow",
+                    backgroundColor: "rgba(0,0,0,0.6)",
+                    padding: "3px 6px",
+                    borderRadius: "3px",
+                    pointerEvents: "none",
+                    zIndex: "1000"
+                }
+            );
+            
+            canvas.parentElement.appendChild(origenLabel);
+            
+            // Posicionar el indicador de origen 2D
+            const originIndicator2D = document.getElementById('originIndicator2D');
+            if (originIndicator2D) {
+                originIndicator2D.style.left = '400px';
+                originIndicator2D.style.top = '250px';
+                originIndicator2D.style.display = 'block';
+            }
+            
+            // Dibujar un punto de prueba en el origen
+            try {
+                ctx.beginPath();
+                ctx.fillStyle = "yellow";
+                ctx.arc(400, 250, 5, 0, Math.PI * 2);
+                ctx.fill();
+                console.log("Punto de origen dibujado correctamente");
+            } catch (drawError) {
+                console.error("Error al dibujar punto de origen:", drawError);
+            }
+            
+            this.dibujarEjesCartesianos();
+            
+            // Activar la rejilla por defecto
+            rejillaActiva = true;
+            const btnRejilla = document.getElementById("btnRejilla");
+            if (btnRejilla) {
+                btnRejilla.textContent = "Rejilla (ON)";
+                btnRejilla.setAttribute('aria-pressed', 'true');
+            }
+            
+            try {
+                this.dibujarRejilla();
+                console.log("Rejilla dibujada correctamente");
+            } catch (rejillaError) {
+                console.error("Error al dibujar rejilla:", rejillaError);
+            }
+            
+            // Inicializar los ejes como un canvas separado
+            this.inicializarEjesCartesianos();
+            
+            // Guardar el estado inicial
+            try {
+                canvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                console.log("Estado inicial guardado correctamente");
+            } catch (stateError) {
+                console.error("Error al guardar estado inicial:", stateError);
+            }
+            
+            Utilidades.mostrarMensajeTemporalEstado("Editor CAD listo");
+            
+            return true;
+        } catch (error) {
+            console.error("Error crítico en inicializarConfiguracion:", error);
             return false;
         }
+    },
 
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = "#ffffff";
-        ctx.fillStyle = "#ff0000";
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        console.log(`Canvas dimensiones: ${canvas.width} x ${canvas.height}`);
-        
-        // Inicializar snapPuntos con el origen
-        snapPuntos = [{ 
-            x: 400, 
-            y: 250, 
-            tipo: "origen", 
-            forma: { tipo: "punto" } 
-        }];
-        
-        // Añadir etiqueta del origen
-        const oldLabel = document.querySelector('.origen-label');
-        if (oldLabel) oldLabel.remove();
-        
-        const origenLabel = document.createElement("div");
-        origenLabel.className = "origen-label";
-        origenLabel.textContent = "Origen (0,0)";
-        Object.assign(origenLabel.style, {
-            position: "absolute",
-            left: "410px",
-            top: "235px",
-            fontFamily: "monospace",
-            fontSize: "12px",
-            color: "yellow",
-            backgroundColor: "rgba(0,0,0,0.6)",
-            padding: "3px 6px",
-            borderRadius: "3px",
-            pointerEvents: "none",
-            zIndex: "1000"
+    inicializarPanoramica() {
+        let startPanX = 0;
+        let startPanY = 0;
+
+        canvas.addEventListener('mousedown', (e) => {
+            if (e.button === 1) { // Botón del medio
+                e.preventDefault();
+                Canvas2D.isPanning = true; // Establecer bandera
+                startPanX = e.clientX;
+                startPanY = e.clientY;
+                canvas.style.cursor = 'grabbing';
+            }
         });
-        canvas.parentElement.appendChild(origenLabel);
-        
-        // Posicionar el indicador de origen 2D
-        const originIndicator2D = document.getElementById('originIndicator2D');
-        if (originIndicator2D) {
-            originIndicator2D.style.left = '400px';
-            originIndicator2D.style.top = '250px';
-            originIndicator2D.style.display = 'block';
-        }
-        
-        // Dibujar un punto de prueba en el origen
-        try {
-            ctx.beginPath();
-            ctx.fillStyle = "yellow";
-            ctx.arc(400, 250, 5, 0, Math.PI * 2);
-            ctx.fill();
-            console.log("Punto de origen dibujado correctamente");
-        } catch (drawError) {
-            console.error("Error al dibujar punto de origen:", drawError);
-        }
-        
-        this.dibujarEjesCartesianos();
-        
-        // Activar la rejilla por defecto
-        rejillaActiva = true;
-        const btnRejilla = document.getElementById("btnRejilla");
-        if (btnRejilla) {
-            btnRejilla.textContent = "Rejilla (ON)";
-        }
-        
-        try {
-            this.dibujarRejilla();
-            console.log("Rejilla dibujada correctamente");
-        } catch (rejillaError) {
-            console.error("Error al dibujar rejilla:", rejillaError);
-        }
-        
-        // Inicializar los ejes como un canvas separado
-        this.inicializarEjesCartesianos();
-        
-        // Guardar el estado inicial
-        try {
-            canvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            console.log("Estado inicial guardado correctamente");
-        } catch (stateError) {
-            console.error("Error al guardar estado inicial:", stateError);
-        }
-        
-        Utilidades.mostrarMensajeTemporalEstado("Editor CAD listo");
-        
-        return true;
-    } catch (error) {
-        console.error("Error crítico en inicializarConfiguracion:", error);
-        return false;
-    }
-},
 
+        canvas.addEventListener('mousemove', (e) => {
+            if (!Canvas2D.isPanning) return;
 
+            // Calcular desplazamiento relativo al zoom
+            const dx = (e.clientX - startPanX) / zoomLevel;
+            const dy = (e.clientY - startPanY) / zoomLevel;
 
-inicializarPanoramica() {
-    let startPanX = 0;
-    let startPanY = 0;
+            // Actualizar desplazamiento acumulado
+            lastTranslateX += dx;
+            lastTranslateY += dy;
 
-    canvas.addEventListener('mousedown', (e) => {
-        if (e.button === 1) { // Botón del medio
-            e.preventDefault();
-            Canvas2D.isPanning = true; // Establecer bandera
+            // Aplicar transformación y redibujar
+            ctx.setTransform(1, 0, 0, 1, 0, 0); // Resetear transformación
+            ctx.scale(zoomLevel, zoomLevel);
+            ctx.translate(lastTranslateX, lastTranslateY);
+
+            // Redibujar todo
+            Canvas2D.redibujaTodo();
+
+            // Actualizar punto de inicio para el próximo movimiento
             startPanX = e.clientX;
             startPanY = e.clientY;
-            canvas.style.cursor = 'grabbing';
+        });
+
+        canvas.addEventListener('mouseup', (e) => {
+            if (e.button === 1) {
+                Canvas2D.isPanning = false; // Restablecer bandera
+                canvas.style.cursor = 'crosshair';
+                Canvas2D.guardarEstado();
+                Utilidades.mostrarMensajeTemporalEstado("Panorámica 2D finalizada");
+            }
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            if (Canvas2D.isPanning) {
+                Canvas2D.isPanning = false; // Restablecer bandera
+                canvas.style.cursor = 'crosshair';
+                Canvas2D.guardarEstado();
+                Utilidades.mostrarMensajeTemporalEstado("Panorámica 2D finalizada");
+            }
+        });
+
+        canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+    },
+
+    inicializarEjesCartesianos() {
+        console.log("Inicializando ejes cartesianos");
+        
+        // Dibujar el origen con más detalle
+        ctx.save();
+        
+        // Dibujar un pequeño cuadrado en el origen
+        ctx.fillStyle = "#ffffff";
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.rect(398, 248, 4, 4);
+        ctx.fill();
+        ctx.stroke();
+        
+        // Añadir etiqueta "0,0,0" cerca del origen
+        ctx.font = "12px monospace";
+        ctx.fillStyle = "#00ffff";
+        ctx.fillText("0,0,0", 405, 245);
+        
+        // Dibujar un círculo pequeño alrededor del origen
+        ctx.beginPath();
+        ctx.strokeStyle = "#ffff00";
+        ctx.arc(400, 250, 8, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        ctx.restore();
+    },
+
+    redibujaTodo() {
+        // Guardar la transformación actual
+        const transform = ctx.getTransform();
+        console.log("Transformación antes de limpiar:", transform);
+
+        // Restablecer la transformación para limpiar el lienzo en coordenadas absolutas
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        console.log("Lienzo limpio:", canvas.width, canvas.height);
+
+        // Restaurar la transformación para dibujar
+        ctx.setTransform(transform);
+        console.log("Transformación restaurada:", ctx.getTransform());
+        
+        // Dibujar un fondo sólido para asegurarnos de que no queden restos
+        ctx.fillStyle = Config.COLOR_FONDO || '#000000';
+        ctx.fillRect(
+            -canvas.width / zoomLevel - lastTranslateX,
+            -canvas.height / zoomLevel - lastTranslateY,
+            canvas.width / zoomLevel * 2,
+            canvas.height / zoomLevel * 2
+        );
+
+        // Dibujar los elementos en el orden correcto
+        if (rejillaActiva) {
+            this.dibujarRejilla();
         }
-    });
+        this.dibujarEjesCartesianosEnContexto(ctx);
+        this.dibujarFormas();
+        this.dibujarPuntosExtremos();
+        this.actualizarIndicadorOrigen();
+    },
 
-    canvas.addEventListener('mousemove', (e) => {
-        if (!Canvas2D.isPanning) return;
+    // Nueva función para dibujar ejes en un contexto dado
+    dibujarEjesCartesianosEnContexto(contexto) {
+        contexto.save();
+        
+        // Establecer color blanco para los ejes
+        contexto.strokeStyle = "#ffffff";
+        contexto.fillStyle = "#ffffff";
+        contexto.lineWidth = 2;
+        
+        // Dibujar eje X con flecha
+        contexto.beginPath();
+        contexto.moveTo(400, 250); // Origen
+        contexto.lineTo(700, 250); // Fin del eje X
+        contexto.stroke();
+        
+        // Flecha del eje X (triángulo)
+        contexto.beginPath();
+        contexto.moveTo(700, 250);
+        contexto.lineTo(690, 245);
+        contexto.lineTo(690, 255);
+        contexto.closePath();
+        contexto.fill();
+        
+        // Dibujar eje Y con flecha
+        contexto.beginPath();
+        contexto.moveTo(400, 250); // Origen
+        contexto.lineTo(400, 50);  // Fin del eje Y
+        contexto.stroke();
+        
+        // Flecha del eje Y (triángulo)
+        contexto.beginPath();
+        contexto.moveTo(400, 50);
+        contexto.lineTo(395, 60);
+        contexto.lineTo(405, 60);
+        contexto.closePath();
+        contexto.fill();
+        
+        // Dibujar cuadrado en el origen
+        contexto.beginPath();
+        contexto.rect(395, 245, 10, 10); // Pequeño cuadrado en el origen
+        contexto.stroke();
+        
+        // Etiquetas para los ejes
+        contexto.font = "16px monospace";
+        contexto.fillStyle = "#ffffff";
+        contexto.fillText("X", 710, 250);
+        contexto.fillText("Y", 400, 40);
+        
+        contexto.restore();
+    },
 
-        // Calcular desplazamiento relativo al zoom
-        const dx = (e.clientX - startPanX) / zoomLevel;
-        const dy = (e.clientY - startPanY) / zoomLevel;
-
-        // Actualizar desplazamiento acumulado
-        lastTranslateX += dx;
-        lastTranslateY += dy;
-
-        // Aplicar transformación y redibujar
-        ctx.setTransform(1, 0, 0, 1, 0, 0); // Resetear transformación
-        ctx.scale(zoomLevel, zoomLevel);
-        ctx.translate(lastTranslateX, lastTranslateY);
-
-        // Redibujar todo
-        Canvas2D.redibujaTodo();
-
-        // Actualizar punto de inicio para el próximo movimiento
-        startPanX = e.clientX;
-        startPanY = e.clientY;
-    });
-
-    canvas.addEventListener('mouseup', (e) => {
-        if (e.button === 1) {
-            Canvas2D.isPanning = false; // Restablecer bandera
-            canvas.style.cursor = 'crosshair';
-            Canvas2D.guardarEstado();
-            Utilidades.mostrarMensajeTemporalEstado("Panorámica 2D finalizada");
-        }
-    });
-
-    canvas.addEventListener('mouseleave', () => {
-        if (Canvas2D.isPanning) {
-            Canvas2D.isPanning = false; // Restablecer bandera
-            canvas.style.cursor = 'crosshair';
-            Canvas2D.guardarEstado();
-            Utilidades.mostrarMensajeTemporalEstado("Panorámica 2D finalizada");
-        }
-    });
-
-    canvas.addEventListener('contextmenu', (e) => e.preventDefault());
-},
-
-// Reemplaza la línea suelta "inicializarEjesCartesianos" con una definición de función completa:
-inicializarEjesCartesianos() {
-    console.log("Inicializando ejes cartesianos");
-    
-    // Dibujar el origen con más detalle
-    ctx.save();
-    
-    // Dibujar un pequeño cuadrado en el origen
-    ctx.fillStyle = "#ffffff";
-    ctx.strokeStyle = "#ffffff";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.rect(398, 248, 4, 4);
-    ctx.fill();
-    ctx.stroke();
-    
-    // Añadir etiqueta "0,0,0" cerca del origen
-    ctx.font = "12px monospace";
-    ctx.fillStyle = "#00ffff";
-    ctx.fillText("0,0,0", 405, 245);
-    
-    // Dibujar un círculo pequeño alrededor del origen
-    ctx.beginPath();
-    ctx.strokeStyle = "#ffff00";
-    ctx.arc(400, 250, 8, 0, Math.PI * 2);
-    ctx.stroke();
-    
-    ctx.restore();
-},
-
-
-
-
-
-redibujaTodo() {
-    // Guardar la transformación actual
-    const transform = ctx.getTransform();
-console.log("Transformación antes de limpiar:", transform);
-
-    // Restablecer la transformación para limpiar el lienzo en coordenadas absolutas
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-	console.log("Lienzo limpio:", canvas.width, canvas.height);
-
-    // Restaurar la transformación para dibujar
-    ctx.setTransform(transform);
-    console.log("Transformación restaurada:", ctx.getTransform());
-	
-    // Dibujar un fondo sólido para asegurarnos de que no queden restos
-    ctx.fillStyle = Config.COLOR_FONDO || '#000000';
-    ctx.fillRect(
-        -canvas.width / zoomLevel - lastTranslateX,
-        -canvas.height / zoomLevel - lastTranslateY,
-        canvas.width / zoomLevel * 2,
-        canvas.height / zoomLevel * 2
-    );
-
-    // Dibujar los elementos en el orden correcto
-    if (Config.MOSTRAR_REJILLA) {
-        Dibujo.dibujarRejilla();
-    }
-    Dibujo.dibujarEjes();
-    formas.forEach(forma => {
-        Dibujo.dibujarForma(forma);
-    });
-    Dibujo.dibujarPuntosExtremos();
-    if (Config.MOSTRAR_INDICADOR_ORIGEN) {
-        Dibujo.dibujarIndicadorOrigen();
-    }
-},
-
-// Nueva función para dibujar ejes en un contexto dado
-dibujarEjesCartesianosEnContexto(contexto) {
-    contexto.save();
-    
-    // Establecer color blanco para los ejes
-    contexto.strokeStyle = "#ffffff";
-    contexto.fillStyle = "#ffffff";
-    contexto.lineWidth = 2;
-    
-    // Dibujar eje X con flecha
-    contexto.beginPath();
-    contexto.moveTo(400, 250); // Origen
-    contexto.lineTo(700, 250); // Fin del eje X
-    contexto.stroke();
-    
-    // Flecha del eje X (triángulo)
-    contexto.beginPath();
-    contexto.moveTo(700, 250);
-    contexto.lineTo(690, 245);
-    contexto.lineTo(690, 255);
-    contexto.closePath();
-    contexto.fill();
-    
-    // Dibujar eje Y con flecha
-    contexto.beginPath();
-    contexto.moveTo(400, 250); // Origen
-    contexto.lineTo(400, 50);  // Fin del eje Y
-    contexto.stroke();
-    
-    // Flecha del eje Y (triángulo)
-    contexto.beginPath();
-    contexto.moveTo(400, 50);
-    contexto.lineTo(395, 60);
-    contexto.lineTo(405, 60);
-    contexto.closePath();
-    contexto.fill();
-    
-    // Dibujar cuadrado en el origen
-    contexto.beginPath();
-    contexto.rect(395, 245, 10, 10); // Pequeño cuadrado en el origen
-    contexto.stroke();
-    
-    // Etiquetas para los ejes
-    contexto.font = "16px monospace";
-    contexto.fillStyle = "#ffffff";
-    contexto.fillText("X", 710, 250);
-    contexto.fillText("Y", 400, 40);
-    
-    contexto.restore();
-},
-
-dibujarEjesCartesianos() {
-    // En vez de dibujar ejes simples, llamar a la función detallada
-    this.dibujarEjesCartesianosEnContexto(ctx);
-},
+    dibujarEjesCartesianos() {
+        // En vez de dibujar ejes simples, llamar a la función detallada
+        this.dibujarEjesCartesianosEnContexto(ctx);
+    },
 
     inicializarZoom() {
         // Añadir evento de zoom al canvas
@@ -837,36 +1120,32 @@ dibujarEjesCartesianos() {
         }, { passive: false });
         
         // Inicializar botones de zoom
-        const zoomIn = document.getElementById('zoomIn');
-        const zoomOut = document.getElementById('zoomOut');
-        const zoomFit = document.getElementById('zoomFit');
-        
-        if (zoomIn) {
-            zoomIn.addEventListener('click', () => {
+        Utilidades.registrarEventos('zoomIn', {
+            'click': () => {
                 const rect = canvas.getBoundingClientRect();
                 const centerX = rect.left + rect.width/2;
                 const centerY = rect.top + rect.height/2;
                 this.aplicarZoom(-100, centerX, centerY);
                 Utilidades.mostrarMensajeTemporalEstado("Zoom acercado");
-            });
-        }
+            }
+        });
         
-        if (zoomOut) {
-            zoomOut.addEventListener('click', () => {
+        Utilidades.registrarEventos('zoomOut', {
+            'click': () => {
                 const rect = canvas.getBoundingClientRect();
                 const centerX = rect.left + rect.width/2;
                 const centerY = rect.top + rect.height/2;
                 this.aplicarZoom(100, centerX, centerY);
                 Utilidades.mostrarMensajeTemporalEstado("Zoom alejado");
-            });
-        }
+            }
+        });
         
-        if (zoomFit) {
-            zoomFit.addEventListener('click', () => {
+        Utilidades.registrarEventos('zoomFit', {
+            'click': () => {
                 this.resetearZoom();
                 Utilidades.mostrarMensajeTemporalEstado("Zoom ajustado a la vista completa");
-            });
-        }
+            }
+        });
     },
 
     aplicarZoom(deltaY, x, y) {
@@ -893,6 +1172,13 @@ dibujarEjesCartesianos() {
         
         // Guardar estado
         this.guardarEstado();
+        
+        // Anunciar para accesibilidad
+        if (deltaY < 0) {
+            canvas.setAttribute('aria-label', `Zoom acercado a ${Math.round(zoomLevel * 100)}%`);
+        } else {
+            canvas.setAttribute('aria-label', `Zoom alejado a ${Math.round(zoomLevel * 100)}%`);
+        }
     },
     
     resetearZoom() {
@@ -912,23 +1198,14 @@ dibujarEjesCartesianos() {
         
         Utilidades.mostrarMensajeTemporalEstado("Vista 2D reseteada (zoom 100%)");
         
+        // Actualizar atributo accesible
+        canvas.setAttribute('aria-label', 'Área de dibujo CAD 2D - Zoom 100%');
+        
         // Si la vista 3D está visible, también la reseteamos
         if (container3D && container3D.style.display !== 'none') {
             Escena3D.resetear();
         }
     },
-
-    redibujaTodo() {
-    // Código de limpieza igual...
-    
-    // Dibuja los elementos en el orden correcto
-    if (rejillaActiva) this.dibujarRejilla();
-    this.dibujarEjesCartesianosEnContexto(ctx); // Cambiar a la función detallada
-    this.dibujarFormas();
-    this.dibujarPuntosExtremos();
-    this.actualizarIndicadorOrigen();
-},
-
 
     dibujarRejilla() {
         if (!rejillaActiva) return;
@@ -1125,536 +1402,782 @@ dibujarEjesCartesianos() {
         
         Utilidades.mostrarMensajeTemporalEstado("Vista 2D reiniciada");
     },
-    
-    reinicioCompleto() {
-        this.resetear();
-        
-        // Si la escena 3D está inicializada, también la reseteamos
-        if (escena3DInitializada) {
-            Escena3D.resetear();
-        }
-        
-        Utilidades.mostrarMensajeTemporalEstado("Aplicación completamente reiniciada");
+	
+	// Módulo para utilidades generales
+const Utilidades = {
+    mostrarMensajeTemporalEstado(mensaje) {
+        const mensajeElement = document.createElement("div");
+        Object.assign(mensajeElement.style, {
+            position: "absolute",
+            top: "10px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            backgroundColor: "rgba(0, 0, 0, 0.7)",
+            color: "white",
+            padding: "8px 15px",
+            borderRadius: "4px",
+            zIndex: "2000",
+            fontFamily: "Arial, sans-serif"
+        });
+        mensajeElement.textContent = mensaje;
+        mensajeElement.setAttribute('role', 'status');
+        mensajeElement.setAttribute('aria-live', 'polite');
+        document.body.appendChild(mensajeElement);
+        setTimeout(() => {
+            mensajeElement.style.transition = "opacity 0.5s";
+            mensajeElement.style.opacity = "0";
+            setTimeout(() => mensajeElement.parentNode?.removeChild(mensajeElement), 500);
+        }, 1500);
     },
 
-    actualizarInfoZoom() {
-        let zoomInfoElement = document.getElementById('zoomInfo');
-        if (!zoomInfoElement) {
-            zoomInfoElement = document.createElement('div');
-            Object.assign(zoomInfoElement.style, {
-                position: 'absolute',
-                top: '10px',
-                left: '10px',
-                backgroundColor: 'rgba(0,0,0,0.7)',
-                color: 'white',
-                padding: '5px',
-                borderRadius: '3px'
-            });
-            zoomInfoElement.id = 'zoomInfo';
-            canvas.parentElement.appendChild(zoomInfoElement);
-        }
-        zoomInfoElement.textContent = `Zoom: ${(zoomLevel * 100).toFixed(0)}%`;
+    calcularDistancia(x1, y1, x2, y2) {
+        return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+    },
+
+    calcularAngulo(x1, y1, x2, y2) {
+        return Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
     },
     
-    // Función para dibujar elipse
-    dibujarElipse(x, y, radiusX, radiusY) {
-        ctx.beginPath();
-        ctx.ellipse(x, y, radiusX, radiusY, 0, 0, Math.PI * 2);
-        ctx.stroke();
+    restringirAngulo(x1, y1, x2, y2) {
+        if (!restriccionAngulo) return {x: x2, y: y2};
+        
+        const angulo = Math.atan2(y2 - y1, x2 - x1);
+        const angulos = [0, Math.PI/2, Math.PI, -Math.PI/2];
+        const anguloMasCercano = angulos.reduce(function(prev, curr) {
+            return (Math.abs(curr - angulo) < Math.abs(prev - angulo)) ? curr : prev;
+        });
+        
+        const distancia = this.calcularDistancia(x1, y1, x2, y2);
+        const newX = x1 + Math.cos(anguloMasCercano) * distancia;
+        const newY = y1 + Math.sin(anguloMasCercano) * distancia;
+        
+        return {x: newX, y: newY};
+    },
+    
+    ajustarARejilla(x, y) {
+        if (!snapToGridActivo) return {x: x, y: y};
+        
+        const gridX = Math.round(x / Config.TAMANO_REJILLA) * Config.TAMANO_REJILLA;
+        const gridY = Math.round(y / Config.TAMANO_REJILLA) * Config.TAMANO_REJILLA;
+        
+        return {x: gridX, y: gridY};
+    },
+    
+    registrarEventos(elementId, eventos) {
+        const elemento = document.getElementById(elementId);
+        if (!elemento) {
+            console.warn(`Elemento con ID '${elementId}' no encontrado`);
+            return;
+        }
+        
+        Object.entries(eventos).forEach(([evento, manejador]) => {
+            elemento.addEventListener(evento, manejador);
+        });
+    },
+    
+    formatearNumero(num, decimales = 2) {
+        return Number(num.toFixed(decimales));
+    },
+    
+    crearElementoUI(tipo, atributos = {}, estilos = {}, eventos = {}) {
+        const elemento = document.createElement(tipo);
+        
+        // Aplicar atributos
+        Object.entries(atributos).forEach(([attr, valor]) => {
+            if (attr === 'textContent') {
+                elemento.textContent = valor;
+            } else if (attr === 'innerHTML') {
+                elemento.innerHTML = valor;
+            } else {
+                elemento.setAttribute(attr, valor);
+            }
+        });
+        
+        // Aplicar estilos
+        Object.assign(elemento.style, estilos);
+        
+        // Registrar eventos
+        Object.entries(eventos).forEach(([evento, manejador]) => {
+            elemento.addEventListener(evento, manejador);
+        });
+        
+        return elemento;
     }
 };
 
-// Módulo para Escena 3D
-const Escena3D = {
+// Módulo para Canvas 2D
+const Canvas2D = {
     inicializar() {
-        container3D = document.getElementById('container3D');
-        btnToggle3D = document.getElementById('btnToggle3D');
-        
-        if (!container3D || !btnToggle3D) {
-            console.error("No se encontraron los elementos 3D necesarios");
+        console.log("Iniciando Canvas2D...");
+        canvas = document.getElementById("lienzo");
+        if (!canvas) {
+            console.error("Canvas no encontrado");
             return false;
         }
         
-        if (escena3DInitializada) return true;
-        
-        // Crear escena
-        scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x111111);
-        
-        // Crear cámara ortográfica
-        const aspectRatio = 800 / 500;
-        const viewSize = 15;
-        camera = new THREE.OrthographicCamera(
-            -viewSize * aspectRatio / 2,
-            viewSize * aspectRatio / 2,
-            viewSize / 2,
-            -viewSize / 2,
-            0.1,
-            1000
-        );
-        camera.position.set(10, 10, 10);
-        camera.lookAt(0, 0, 0);
-        
-        // Configurar renderizador
-        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(800, 500);
-        renderer.setClearColor(0x000000, 0.1);
-        
-        // Configurar controles de órbita
-        controls = new THREE.OrbitControls(camera, renderer.domElement);
-        
-        this.configurarLuces();
-        this.crearPlanosTransparentes();
-        this.crearRejillasReferencia();
-        this.crearEjesDetallados();
-        this.crearIndicadorOrigen();
-        this.crearCoordenadaFlotante();
-        this.inicializarPanoramica();
-        
-        // Configurar el botón para activar/desactivar vista 3D
-        btnToggle3D.addEventListener('click', () => this.toggleVista3D());
-        
-        // Configurar el botón para reiniciar vista 3D
-        const btnReiniciarVista3D = document.getElementById('btnReiniciarVista3D');
-        if (btnReiniciarVista3D) {
-            btnReiniciarVista3D.addEventListener('click', () => this.resetear());
+        // Modificar esta línea para incluir willReadFrequently
+        ctx = canvas.getContext("2d", { willReadFrequently: true });
+        if (!ctx) {
+            console.error("No se pudo obtener el contexto 2D");
+            return false;
         }
         
-        escena3DInitializada = true;
-        Utilidades.mostrarMensajeTemporalEstado("Vista 3D inicializada");
+        // Referencias a elementos de la interfaz
+        coordsElement = document.getElementById("coordCanvas");
+        lineInfoElement = document.getElementById("lineInfo");
+        anguloVisualElement = document.getElementById("anguloVisual");
+        snapInfoElement = document.getElementById("snapInfo");
+        distanciaInfoElement = document.getElementById("distanciaInfo");
+        entradaDimensionesElement = document.getElementById("entradaDimensiones");
+        inputDistanciaElement = document.getElementById("inputDistancia");
+        distanciaVisualElement = document.getElementById("distanciaVisual");
+        
+        // Crear elementos visuales dinámicos
+        ortoVisualElement = Utilidades.crearElementoUI('div', {}, {
+            position: "absolute",
+            display: "none",
+            fontFamily: "monospace",
+            fontSize: "12px",
+            backgroundColor: "#666666",
+            color: "white",
+            padding: "2px 5px",
+            borderRadius: "3px"
+        });
+        
+        canvas.parentElement.appendChild(ortoVisualElement);
+        
+        anguloInfoElement = Utilidades.crearElementoUI('div', {}, {
+            position: "absolute",
+            display: "none",
+            fontFamily: "monospace",
+            fontSize: "12px",
+            backgroundColor: "#666666",
+            color: "white",
+            padding: "2px 5px",
+            borderRadius: "3px"
+        });
+        
+        canvas.parentElement.appendChild(anguloInfoElement);
+        
+        this.inicializarConfiguracion();
+        this.inicializarPanoramica();
+        this.inicializarZoom();
+        
+        // Añadir clase de accesibilidad para lectores de pantalla
+        canvas.setAttribute('aria-roledescription', 'editor CAD');
+        
         return true;
     },
-    
-    toggleVista3D() {
-        if (container3D.style.display === 'none') {
-            // Activar vista 3D
-            if (!escena3DInitializada) {
-                this.inicializar();
+
+    // Función para inicializar manualmente
+    inicializarManualmente() {
+        console.log("Inicializando manualmente...");
+        try {
+            // Intenta inicializar el canvas 2D
+            if (Canvas2D && typeof Canvas2D.inicializar === 'function') {
+                console.log("Llamando a Canvas2D.inicializar()");
+                if (!Canvas2D.inicializar()) {
+                    throw new Error("Falló la inicialización del Canvas2D");
+                }
+            } else {
+                console.error("Canvas2D no está definido o inicializar no es una función");
             }
             
-            // Limpiar el contenedor y añadir el renderer
-            container3D.innerHTML = '';
-            container3D.appendChild(renderer.domElement);
+            // Intenta inicializar los controles
+            if (Controles && typeof Controles.inicializar === 'function') {
+                console.log("Llamando a Controles.inicializar()");
+                Controles.inicializar();
+            } else {
+                console.error("Controles no está definido o inicializar no es una función");
+            }
             
-            // Dibujar todas las líneas en 3D
-            lineas3D.forEach(linea => {
-                if (!linea.added) {
-                    Dibujo.createLine3D(linea.x1, linea.y1, linea.x2, linea.y2);
-                    linea.added = true;
+            console.log("Inicialización manual completada exitosamente");
+            Utilidades.mostrarMensajeTemporalEstado("Editor CAD inicializado correctamente");
+        } catch (e) {
+            console.error("Error durante la inicialización manual:", e);
+            Utilidades.mostrarMensajeTemporalEstado("Error durante la inicialización: " + e.message);
+        }
+    },
+    
+    inicializarConfiguracion() {
+        console.log("Iniciando configuración del Canvas...");
+        
+        try {
+            // Verificación adicional de contexto
+            if (!ctx) {
+                console.error("Contexto del canvas es nulo");
+                return false;
+            }
+
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = "#ffffff";
+            ctx.fillStyle = "#ff0000";
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            console.log(`Canvas dimensiones: ${canvas.width} x ${canvas.height}`);
+            
+            // Inicializar snapPuntos con el origen
+            snapPuntos = [{ 
+                x: 400, 
+                y: 250, 
+                tipo: "origen", 
+                forma: { tipo: "punto" } 
+            }];
+            
+            // Añadir etiqueta del origen
+            const oldLabel = document.querySelector('.origen-label');
+            if (oldLabel) oldLabel.remove();
+            
+            const origenLabel = Utilidades.crearElementoUI('div', 
+                { 
+                    className: "origen-label",
+                    textContent: "Origen (0,0)",
+                    role: "note", 
+                    "aria-label": "Origen del sistema de coordenadas" 
+                }, 
+                {
+                    position: "absolute",
+                    left: "410px",
+                    top: "235px",
+                    fontFamily: "monospace",
+                    fontSize: "12px",
+                    color: "yellow",
+                    backgroundColor: "rgba(0,0,0,0.6)",
+                    padding: "3px 6px",
+                    borderRadius: "3px",
+                    pointerEvents: "none",
+                    zIndex: "1000"
                 }
-            });
+            );
             
-            container3D.style.display = 'block';
-            btnToggle3D.textContent = 'Desactivar Ventana 3D';
+            canvas.parentElement.appendChild(origenLabel);
             
-            // Iniciar animación
-            this.animate();
+            // Posicionar el indicador de origen 2D
+            const originIndicator2D = document.getElementById('originIndicator2D');
+            if (originIndicator2D) {
+                originIndicator2D.style.left = '400px';
+                originIndicator2D.style.top = '250px';
+                originIndicator2D.style.display = 'block';
+            }
             
-            Utilidades.mostrarMensajeTemporalEstado("Vista 3D activada - Use botón del medio para mover la vista");
-        } else {
-            // Desactivar vista 3D
-            container3D.style.display = 'none';
-            btnToggle3D.textContent = 'Activar Ventana 3D';
-            Utilidades.mostrarMensajeTemporalEstado("Vista 3D desactivada");
+            // Dibujar un punto de prueba en el origen
+            try {
+                ctx.beginPath();
+                ctx.fillStyle = "yellow";
+                ctx.arc(400, 250, 5, 0, Math.PI * 2);
+                ctx.fill();
+                console.log("Punto de origen dibujado correctamente");
+            } catch (drawError) {
+                console.error("Error al dibujar punto de origen:", drawError);
+            }
+            
+            this.dibujarEjesCartesianos();
+            
+            // Activar la rejilla por defecto
+            rejillaActiva = true;
+            const btnRejilla = document.getElementById("btnRejilla");
+            if (btnRejilla) {
+                btnRejilla.textContent = "Rejilla (ON)";
+                btnRejilla.setAttribute('aria-pressed', 'true');
+            }
+            
+            try {
+                this.dibujarRejilla();
+                console.log("Rejilla dibujada correctamente");
+            } catch (rejillaError) {
+                console.error("Error al dibujar rejilla:", rejillaError);
+            }
+            
+            // Inicializar los ejes como un canvas separado
+            this.inicializarEjesCartesianos();
+            
+            // Guardar el estado inicial
+            try {
+                canvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                console.log("Estado inicial guardado correctamente");
+            } catch (stateError) {
+                console.error("Error al guardar estado inicial:", stateError);
+            }
+            
+            Utilidades.mostrarMensajeTemporalEstado("Editor CAD listo");
+            
+            return true;
+        } catch (error) {
+            console.error("Error crítico en inicializarConfiguracion:", error);
+            return false;
         }
     },
 
-    configurarLuces() {
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-        scene.add(ambientLight);
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        directionalLight.position.set(5, 5, 5);
-        scene.add(directionalLight);
-    },
+    inicializarPanoramica() {
+        let startPanX = 0;
+        let startPanY = 0;
 
-    crearPlanosTransparentes() {
-    const tamano = 15;
-    const materiales = [
-        { color: 0x0088ff, rotation: Math.PI / 2 }, // XY (azul)
-        { color: 0xff8800, rotation: 0 },           // XZ (naranja)
-        { color: 0x00ff88, rotation: Math.PI / 2, axis: 'y' } // YZ (verde)
-    ];
-    
-    materiales.forEach((mat, index) => {
-        const material = new THREE.MeshBasicMaterial({
-            color: mat.color,
-            transparent: true,
-            opacity: 0.15,
-            side: THREE.DoubleSide,
-            depthWrite: false
+        canvas.addEventListener('mousedown', (e) => {
+            if (e.button === 1) { // Botón del medio
+                e.preventDefault();
+                Canvas2D.isPanning = true; // Establecer bandera
+                startPanX = e.clientX;
+                startPanY = e.clientY;
+                canvas.style.cursor = 'grabbing';
+            }
         });
-        
-        const plano = new THREE.Mesh(
-            new THREE.PlaneGeometry(tamano, tamano), 
-            material
-        );
-        
-        if (mat.rotation) {
-            mat.axis === 'y' 
-                ? plano.rotation.y = mat.rotation 
-                : plano.rotation.x = mat.rotation;
-        }
-        
-        plano.renderOrder = index + 1;
-        scene.add(plano);
-    });
-},
 
-crearRejillasReferencia() {
-    const tamano = 15, divisiones = 15;
-    const rejillas = [
-        { position: [0, 0, 0], rotation: [0, 0, 0] },             // XY
-        { position: [0, tamano / 2, 0], rotation: [Math.PI / 2, 0, 0] }, // XZ
-        { position: [0, 0, tamano / 2], rotation: [0, Math.PI / 2, 0] }  // YZ
-    ];
-    
-    rejillas.forEach(r => {
-        const rejilla = new THREE.GridHelper(tamano, divisiones, 0x888888, 0x444444);
-        rejilla.position.set(...r.position);
-        rejilla.rotation.set(...r.rotation);
-        scene.add(rejilla);
-    });
-},
+        canvas.addEventListener('mousemove', (e) => {
+            if (!Canvas2D.isPanning) return;
 
-crearEjesDetallados() {
-    const longitud = 10;
-    const ejes = [
-        { end: [longitud, 0, 0], color: '#ff0000', label: 'X', coneRotation: [0, 0, -Math.PI / 2] },
-        { end: [0, longitud, 0], color: '#00ff00', label: 'Y', coneRotation: [0, 0, 0] },
-        { end: [0, 0, longitud], color: '#0088ff', label: 'Z', coneRotation: [Math.PI / 2, 0, 0] }
-    ];
-    
-    ejes.forEach(eje => {
-        // Crear línea del eje
-        const geometria = new THREE.BufferGeometry();
-        geometria.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, ...eje.end], 3));
-        const linea = new THREE.Line(
-            geometria, 
-            new THREE.LineBasicMaterial({ color: eje.color, linewidth: 3 })
-        );
-        scene.add(linea);
-        
-        // Crear cono para la punta
-        const cono = new THREE.Mesh(
-            new THREE.ConeGeometry(0.2, 0.5, 8),
-            new THREE.MeshBasicMaterial({ color: eje.color })
-        );
-        cono.position.set(...eje.end);
-        cono.rotation.set(...eje.coneRotation);
-        scene.add(cono);
-        
-        // Crear etiqueta del eje
-        const canvas = document.createElement('canvas');
-        canvas.width = canvas.height = 64;
-        const context = canvas.getContext('2d');
-        context.fillStyle = eje.color;
-        context.font = '48px Arial';
-        context.textAlign = 'center';
-        context.textBaseline = 'middle';
-        context.fillText(eje.label, 32, 32);
-        
-        const sprite = new THREE.Sprite(
-            new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas) })
-        );
-        
-        // Posicionar etiqueta un poco más allá del eje
-        sprite.position.set(...eje.end.map(x => x * 1.2));
-        sprite.scale.set(2, 2, 2);
-        scene.add(sprite);
-    });
-},
+            // Calcular desplazamiento relativo al zoom
+            const dx = (e.clientX - startPanX) / zoomLevel;
+            const dy = (e.clientY - startPanY) / zoomLevel;
 
-crearIndicadorOrigen() {
-    const origen = new THREE.Mesh(
-        new THREE.SphereGeometry(0.2, 16, 16),
-        new THREE.MeshBasicMaterial({ color: 0xffff00 })
-    );
-    scene.add(origen);
-},
+            // Actualizar desplazamiento acumulado
+            lastTranslateX += dx;
+            lastTranslateY += dy;
 
-crearCoordenadaFlotante() {
-    if (!coord3DInfo) {
-        coord3DInfo = document.createElement('div');
-        Object.assign(coord3DInfo.style, {
-            position: 'absolute',
-            bottom: '10px',
-            left: '10px',
-            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            color: 'white',
-            padding: '5px 10px',
-            borderRadius: '5px',
-            fontFamily: 'monospace',
-            fontSize: '12px',
-            pointerEvents: 'none',
-            zIndex: '1000',
-            width: 'auto',
-            whiteSpace: 'nowrap'
+            // Aplicar transformación y redibujar
+            ctx.setTransform(1, 0, 0, 1, 0, 0); // Resetear transformación
+            ctx.scale(zoomLevel, zoomLevel);
+            ctx.translate(lastTranslateX, lastTranslateY);
+
+            // Redibujar todo
+            Canvas2D.redibujaTodo();
+
+            // Actualizar punto de inicio para el próximo movimiento
+            startPanX = e.clientX;
+            startPanY = e.clientY;
         });
-        container3D.appendChild(coord3DInfo);
-    }
-    this.actualizarInfoCoordenadas();
-},
 
-actualizarInfoCoordenadas() {
-    if (!coord3DInfo || !camera) return;
-    const pos = camera.position;
-    coord3DInfo.innerHTML = `
-        <div><strong>Cámara:</strong> X: ${pos.x.toFixed(2)}, Y: ${pos.y.toFixed(2)}, Z: ${pos.z.toFixed(2)}</div>
-        <div><strong>Zoom:</strong> ${zoomLevel.toFixed(2)}x</div>
-    `;
-},
+        canvas.addEventListener('mouseup', (e) => {
+            if (e.button === 1) {
+                Canvas2D.isPanning = false; // Restablecer bandera
+                canvas.style.cursor = 'crosshair';
+                Canvas2D.guardarEstado();
+                Utilidades.mostrarMensajeTemporalEstado("Panorámica 2D finalizada");
+            }
+        });
 
-inicializarPanoramica() {
-    if (!controls) return;
-    
-    controls.mouseButtons = {
-        LEFT: THREE.MOUSE.ROTATE,
-        MIDDLE: THREE.MOUSE.PAN,
-        RIGHT: THREE.MOUSE.DOLLY
-    };
-    
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.1;
-    controls.panSpeed = 1.0;
-    controls.rotateSpeed = 0.8;
-    controls.minPolarAngle = 0;
-    controls.maxPolarAngle = Math.PI * 0.85;
-    controls.addEventListener('change', () => this.actualizarInfoCoordenadas());
-    controls.update();
+        canvas.addEventListener('mouseleave', () => {
+            if (Canvas2D.isPanning) {
+                Canvas2D.isPanning = false; // Restablecer bandera
+                canvas.style.cursor = 'crosshair';
+                Canvas2D.guardarEstado();
+                Utilidades.mostrarMensajeTemporalEstado("Panorámica 2D finalizada");
+            }
+        });
 
-    container3D.addEventListener('mousedown', (e) => {
-        if (e.button === 1) {
-            e.preventDefault();
-            Utilidades.mostrarMensajeTemporalEstado("Panorámica 3D activada");
-        }
-    }, true);
-
-    container3D.addEventListener('mouseup', (e) => {
-        if (e.button === 1) {
-            e.preventDefault();
-            Utilidades.mostrarMensajeTemporalEstado("Panorámica 3D finalizada");
-            this.actualizarInfoCoordenadas();
-        }
-    }, true);
-
-    container3D.addEventListener('wheel', () => this.actualizarInfoCoordenadas(), { passive: true });
-},
-
-animate() {
-    if (container3D.style.display === 'none') return;
-    requestAnimationFrame(() => this.animate());
-    if (controls) {
-        controls.update();
-        this.actualizarInfoCoordenadas();
-    }
-    renderer.render(scene, camera);
-},
-
-resetear() {
-    if (!escena3DInitializada || !controls) return;
-    camera.position.set(5, 5, 5);
-    camera.lookAt(0, 0, 0);
-    controls.reset();
-    controls.update();
-    renderer.render(scene, camera);
-    Utilidades.mostrarMensajeTemporalEstado("Vista 3D reseteada");
-}
-};
-
-// Módulo para Dibujo
-const Dibujo = {
-    convert2Dto3D(x, y) {
-        const x3D = (x - 400) / 50;
-        const y3D = (250 - y) / 50;
-        return new THREE.Vector3(x3D, y3D, 0);
+        canvas.addEventListener('contextmenu', (e) => e.preventDefault());
     },
 
-    createLine3D(x1, y1, x2, y2) {
-        if (!escena3DInitializada) return null;
+    inicializarEjesCartesianos() {
+        console.log("Inicializando ejes cartesianos");
         
-        const startPoint = this.convert2Dto3D(x1, y1);
-        const endPoint = this.convert2Dto3D(x2, y2);
+        // Dibujar el origen con más detalle
+        ctx.save();
         
-        const geometry = new THREE.BufferGeometry();
-        geometry.setAttribute('position', new THREE.Float32BufferAttribute([
-            startPoint.x, startPoint.y, startPoint.z,
-            endPoint.x, endPoint.y, endPoint.z
-        ], 3));
-        
-        const line = new THREE.Line(
-            geometry,
-            new THREE.LineBasicMaterial({ color: 0xffffff })
-        );
-        
-        scene.add(line);
-        return line;
-    },
-
-    actualizarLineas3D() {
-        // Reiniciar array de líneas 3D
-        lineas3D = formas
-            .filter(forma => forma.tipo === "linea")
-            .map(forma => ({
-                x1: forma.x1,
-                y1: forma.y1,
-                x2: forma.x2,
-                y2: forma.y2,
-                added: false
-            }));
-        
-        // Si la escena 3D está inicializada y visible, actualizar visualización
-        if (escena3DInitializada && container3D.style.display !== 'none') {
-            // Remover líneas existentes
-            scene.children = scene.children.filter(child => !(child instanceof THREE.Line) || child.userData.isAxis);
-            
-            // Crear nuevas líneas
-            lineas3D.forEach(linea => {
-                this.createLine3D(linea.x1, linea.y1, linea.x2, linea.y2);
-                linea.added = true;
-            });
-            
-            // Renderizar escena
-            renderer.render(scene, camera);
-        }
-    },
-
-    iniciarDibujoEn(x, y) {
-        Canvas2D.guardarEstado();
-        puntoInicial = { x, y };
-        
-        // Dibujar punto inicial
-        ctx.beginPath();
-        ctx.fillStyle = "#ff0000";
-        ctx.arc(x, y, 4, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Dibujar línea de proyección inicial
-        ctx.beginPath();
-        ctx.setLineDash([5, 3]);
+        // Dibujar un pequeño cuadrado en el origen
+        ctx.fillStyle = "#ffffff";
         ctx.strokeStyle = "#ffffff";
-        ctx.lineWidth = 2;
-        ctx.moveTo(x, y);
-        ctx.lineTo(x, y);
-        ctx.stroke();
-        ctx.setLineDash([]);
-    },
-
-    encontrarSnapPunto(x, y) {
-        if (snapActivo) {
-            let distanciaMinima = 10;
-            let puntoMasCercano = null;
-            let tipoSnap = "";
-            
-            // Buscar el punto de snap más cercano
-            for (let punto of snapPuntos) {
-                const distancia = Utilidades.calcularDistancia(x, y, punto.x, punto.y);
-                if (distancia < distanciaMinima) {
-                    distanciaMinima = distancia;
-                    puntoMasCercano = punto;
-                    tipoSnap = punto.tipo;
-                }
-            }
-            
-            if (puntoMasCercano) {
-                if (snapInfoElement) snapInfoElement.textContent = "Snap: " + tipoSnap;
-                return {
-                    x: puntoMasCercano.x,
-                    y: puntoMasCercano.y,
-                    encontrado: true,
-                    punto: puntoMasCercano
-                };
-            }
-            
-            if (snapInfoElement) snapInfoElement.textContent = "";
-        }
-        
-        if (snapToGridActivo) {
-            const coordsRejilla = Utilidades.ajustarARejilla(x, y);
-            if (snapInfoElement) snapInfoElement.textContent = "Snap: Rejilla";
-            return {
-                x: coordsRejilla.x,
-                y: coordsRejilla.y,
-                encontrado: true
-            };
-        }
-        
-        if (snapInfoElement) snapInfoElement.textContent = "";
-        return { x, y, encontrado: false };
-    },
-
-    dibujarSnapIndicador(x, y) {
-        if (!snapActivo && !snapToGridActivo) return;
-        
-        ctx.save();
-        ctx.fillStyle = "#00ff00";
+        ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.arc(x, y, 5, 0, Math.PI * 2);
+        ctx.rect(398, 248, 4, 4);
         ctx.fill();
+        ctx.stroke();
+        
+        // Añadir etiqueta "0,0,0" cerca del origen
+        ctx.font = "12px monospace";
+        ctx.fillStyle = "#00ffff";
+        ctx.fillText("0,0,0", 405, 245);
+        
+        // Dibujar un círculo pequeño alrededor del origen
+        ctx.beginPath();
+        ctx.strokeStyle = "#ffff00";
+        ctx.arc(400, 250, 8, 0, Math.PI * 2);
+        ctx.stroke();
+        
         ctx.restore();
     },
 
-    encontrarPuntoEnLinea(x, y) {
-        lineaPuntosCercanos = [];
-        let distanciaMinima = 5;
-        let formaLinea = null;
+    redibujaTodo() {
+        // Guardar la transformación actual
+        const transform = ctx.getTransform();
+        console.log("Transformación antes de limpiar:", transform);
+
+        // Restablecer la transformación para limpiar el lienzo en coordenadas absolutas
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        console.log("Lienzo limpio:", canvas.width, canvas.height);
+
+        // Restaurar la transformación para dibujar
+        ctx.setTransform(transform);
+        console.log("Transformación restaurada:", ctx.getTransform());
         
-        for (let forma of formas) {
-            if (forma.tipo === "linea") {
-                const dx = forma.x2 - forma.x1;
-                const dy = forma.y2 - forma.y1;
-                const longitud = Math.sqrt(dx * dx + dy * dy);
-                const u = ((x - forma.x1) * dx + (y - forma.y1) * dy) / (longitud * longitud);
-                
-                if (u >= 0 && u <= 1) {
-                    const px = forma.x1 + u * dx;
-                    const py = forma.y1 + u * dy;
-                    const distancia = Utilidades.calcularDistancia(x, y, px, py);
-                    
-                    if (distancia < distanciaMinima) {
-                        distanciaMinima = distancia;
-                        formaLinea = forma;
-                        const distanciaDesdeInicio = u * longitud;
-                        lineaPuntosCercanos = [{
-                            x: px,
-                            y: py,
-                            distancia: Math.round(distanciaDesdeInicio)
-                        }];
-                    }
-                }
-            }
+        // Dibujar un fondo sólido para asegurarnos de que no queden restos
+        ctx.fillStyle = Config.COLOR_FONDO || '#000000';
+        ctx.fillRect(
+            -canvas.width / zoomLevel - lastTranslateX,
+            -canvas.height / zoomLevel - lastTranslateY,
+            canvas.width / zoomLevel * 2,
+            canvas.height / zoomLevel * 2
+        );
+
+        // Dibujar los elementos en el orden correcto
+        if (rejillaActiva) {
+            this.dibujarRejilla();
         }
-        
-        return formaLinea ? {
-            encontrado: true,
-            x: lineaPuntosCercanos[0].x,
-            y: lineaPuntosCercanos[0].y,
-            distancia: lineaPuntosCercanos[0].distancia
-        } : {
-            encontrado: false
-        };
+        this.dibujarEjesCartesianosEnContexto(ctx);
+        this.dibujarFormas();
+        this.dibujarPuntosExtremos();
+        this.actualizarIndicadorOrigen();
     },
 
-    dibujarPuntosEnLinea() {
-        if (lineaPuntosCercanos.length === 0 || !distanciaInfoElement) return;
+    // Nueva función para dibujar ejes en un contexto dado
+    dibujarEjesCartesianosEnContexto(contexto) {
+        contexto.save();
+        
+        // Establecer color blanco para los ejes
+        contexto.strokeStyle = "#ffffff";
+        contexto.fillStyle = "#ffffff";
+        contexto.lineWidth = 2;
+        
+        // Dibujar eje X con flecha
+        contexto.beginPath();
+        contexto.moveTo(400, 250); // Origen
+        contexto.lineTo(700, 250); // Fin del eje X
+        contexto.stroke();
+        
+        // Flecha del eje X (triángulo)
+        contexto.beginPath();
+        contexto.moveTo(700, 250);
+        contexto.lineTo(690, 245);
+        contexto.lineTo(690, 255);
+        contexto.closePath();
+        contexto.fill();
+        
+        // Dibujar eje Y con flecha
+        contexto.beginPath();
+        contexto.moveTo(400, 250); // Origen
+        contexto.lineTo(400, 50);  // Fin del eje Y
+        contexto.stroke();
+        
+        // Flecha del eje Y (triángulo)
+        contexto.beginPath();
+        contexto.moveTo(400, 50);
+        contexto.lineTo(395, 60);
+        contexto.lineTo(405, 60);
+        contexto.closePath();
+        contexto.fill();
+        
+        // Dibujar cuadrado en el origen
+        contexto.beginPath();
+        contexto.rect(395, 245, 10, 10); // Pequeño cuadrado en el origen
+        contexto.stroke();
+        
+        // Etiquetas para los ejes
+        contexto.font = "16px monospace";
+        contexto.fillStyle = "#ffffff";
+        contexto.fillText("X", 710, 250);
+        contexto.fillText("Y", 400, 40);
+        
+        contexto.restore();
+    },
+
+    dibujarEjesCartesianos() {
+        // En vez de dibujar ejes simples, llamar a la función detallada
+        this.dibujarEjesCartesianosEnContexto(ctx);
+    },
+
+    inicializarZoom() {
+        // Añadir evento de zoom al canvas
+        canvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            this.aplicarZoom(e.deltaY, e.clientX, e.clientY);
+        }, { passive: false });
+        
+        // Inicializar botones de zoom
+        Utilidades.registrarEventos('zoomIn', {
+            'click': () => {
+                const rect = canvas.getBoundingClientRect();
+                const centerX = rect.left + rect.width/2;
+                const centerY = rect.top + rect.height/2;
+                this.aplicarZoom(-100, centerX, centerY);
+                Utilidades.mostrarMensajeTemporalEstado("Zoom acercado");
+            }
+        });
+        
+        Utilidades.registrarEventos('zoomOut', {
+            'click': () => {
+                const rect = canvas.getBoundingClientRect();
+                const centerX = rect.left + rect.width/2;
+                const centerY = rect.top + rect.height/2;
+                this.aplicarZoom(100, centerX, centerY);
+                Utilidades.mostrarMensajeTemporalEstado("Zoom alejado");
+            }
+        });
+        
+        Utilidades.registrarEventos('zoomFit', {
+            'click': () => {
+                this.resetearZoom();
+                Utilidades.mostrarMensajeTemporalEstado("Zoom ajustado a la vista completa");
+            }
+        });
+    },
+
+    aplicarZoom(deltaY, x, y) {
+        const escalaAnterior = zoomLevel;
+        zoomLevel += deltaY < 0 ? Config.ZOOM_SPEED : -Config.ZOOM_SPEED;
+        zoomLevel = Math.max(Config.MIN_ZOOM, Math.min(Config.MAX_ZOOM, zoomLevel));
+        
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = x - rect.left;
+        const mouseY = y - rect.top;
+        
+        // Resetear la transformación y limpiar
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Aplicar la nueva transformación
+        ctx.translate(mouseX, mouseY);
+        ctx.scale(zoomLevel, zoomLevel);
+        ctx.translate(-mouseX, -mouseY);
+        
+        // Redibujar todo
+        this.redibujaTodo();
+        this.actualizarInfoZoom();
+        
+        // Guardar estado
+        this.guardarEstado();
+        
+        // Anunciar para accesibilidad
+        if (deltaY < 0) {
+            canvas.setAttribute('aria-label', `Zoom acercado a ${Math.round(zoomLevel * 100)}%`);
+        } else {
+            canvas.setAttribute('aria-label', `Zoom alejado a ${Math.round(zoomLevel * 100)}%`);
+        }
+    },
+    
+    resetearZoom() {
+        zoomLevel = 1;
+        lastTranslateX = 0;
+        lastTranslateY = 0;
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        
+        this.redibujaTodo();
+        
+        // Eliminar indicador de zoom
+        const zoomInfoElement = document.getElementById('zoomInfo');
+        if (zoomInfoElement) zoomInfoElement.remove();
+        
+        // Guardar estado
+        this.guardarEstado();
+        
+        Utilidades.mostrarMensajeTemporalEstado("Vista 2D reseteada (zoom 100%)");
+        
+        // Actualizar atributo accesible
+        canvas.setAttribute('aria-label', 'Área de dibujo CAD 2D - Zoom 100%');
+        
+        // Si la vista 3D está visible, también la reseteamos
+        if (container3D && container3D.style.display !== 'none') {
+            Escena3D.resetear();
+        }
+    },
+
+    dibujarRejilla() {
+        if (!rejillaActiva) return;
         
         ctx.save();
-        ctx.fillStyle = "#00ff00";
+        ctx.strokeStyle = "#666666";
+        ctx.lineWidth = 0.8;// Ajustar grosor según el zoom
         
-        for (let punto of lineaPuntosCercanos) {
+        for (let x = Config.TAMANO_REJILLA; x < canvas.width; x += Config.TAMANO_REJILLA) {
             ctx.beginPath();
-            ctx.arc(punto.x, punto.y, 4, 0, Math.PI * 2);
-            ctx.fill();
-            
-            distanciaInfoElement.style.left = punto.x + "px";
-            distanciaInfoElement.style.top = (punto.y - 20) + "px";
-            distanciaInfoElement.textContent = "Dist: " + punto.distancia;
-            distanciaInfoElement.style.display = "block";
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, canvas.height);
+            ctx.stroke();
+        }
+        
+        for (let y = Config.TAMANO_REJILLA; y < canvas.height; y += Config.TAMANO_REJILLA) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(canvas.width, y);
+            ctx.stroke();
         }
         
         ctx.restore();
     },
 
-    mostrarDistanciaVisual(x1, y1, x2, y2) {
+    dibujarFormas() {
+        ctx.save();
+        ctx.lineWidth = 2;
+        
+        formas.forEach(forma => {
+            ctx.beginPath();
+            ctx.strokeStyle = forma.color || "#ffffff";
+            
+            switch (forma.tipo) {
+                case "linea":
+                    ctx.moveTo(forma.x1, forma.y1);
+                    ctx.lineTo(forma.x2, forma.y2);
+                    break;
+                case "rectangulo":
+                    ctx.rect(forma.x, forma.y, forma.ancho, forma.alto);
+                    break;
+                case "circulo":
+                    ctx.arc(forma.x, forma.y, forma.radio, 0, Math.PI * 2);
+                    break;
+                case "elipse":
+                    ctx.ellipse(forma.x, forma.y, forma.radiusX, forma.radiusY, 0, 0, Math.PI * 2);
+                    break;
+                case "polilinea":
+                    if (forma.puntos && forma.puntos.length > 0) {
+                        ctx.moveTo(forma.puntos[0].x, forma.puntos[0].y);
+                        for (let i = 1; i < forma.puntos.length; i++) {
+                            ctx.lineTo(forma.puntos[i].x, forma.puntos[i].y);
+                        }
+                    }
+                    break;
+                case "arco":
+                    ctx.moveTo(forma.x1, forma.y1);
+                    ctx.quadraticCurveTo(forma.cx, forma.cy, forma.x2, forma.y2);
+                    break;
+            }
+            
+            ctx.stroke();
+        });
+        
+        ctx.restore();
+    },
+
+    dibujarPuntosExtremos() {
+        ctx.save();
+        ctx.fillStyle = "#ff0000";
+        
+        formas.forEach(forma => {
+            if (forma.tipo === "linea") {
+                // Punto inicial
+                ctx.beginPath();
+                ctx.arc(forma.x1, forma.y1, 3, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Punto final
+                ctx.beginPath();
+                ctx.arc(forma.x2, forma.y2, 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        });
+        
+        ctx.restore();
+    },
+
+    actualizarIndicadorOrigen() {
+        const originIndicator = document.getElementById('originIndicator2D');
+        if (!originIndicator) return;
+        
+        const transform = ctx.getTransform();
+        const originX = transform.e + 400 * transform.a;
+        const originY = transform.f + 250 * transform.d;
+        
+        originIndicator.style.left = `${originX}px`;
+        originIndicator.style.top = `${originY}px`;
+    },
+
+    guardarEstado() {
+        // Guardar la transformación actual
+        const transformacionActual = ctx.getTransform();
+        
+        // Resetear transformación para capturar imagen en coordenadas absolutas
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        canvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        
+        // Gestionar el historial
+        if (posicionHistorial < historialEstados.length - 1) {
+            historialEstados = historialEstados.slice(0, posicionHistorial + 1);
+        }
+        
+        historialEstados.push({
+            imagen: ctx.getImageData(0, 0, canvas.width, canvas.height),
+            formas: JSON.parse(JSON.stringify(formas)),
+            zoomLevel,
+            transformacion: {
+                a: transformacionActual.a,
+                b: transformacionActual.b,
+                c: transformacionActual.c,
+                d: transformacionActual.d,
+                e: transformacionActual.e,
+                f: transformacionActual.f
+            }
+        });
+        
+        if (historialEstados.length > Config.MAX_HISTORIAL) {
+            historialEstados.shift();
+        }
+        
+        posicionHistorial = historialEstados.length - 1;
+        
+        // Restaurar la transformación
+        ctx.setTransform(transformacionActual);
+    },
+
+    restaurarEstado() {
+        if (canvasState) {
+            // Guardar transformación actual
+            const transform = ctx.getTransform();
+            
+            // Resetear, limpiar y restaurar imagen
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.putImageData(canvasState, 0, 0);
+            
+            // Restaurar transformación
+            ctx.setTransform(transform);
+            
+            // Restaurar estilos
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = "#ffffff";
+            ctx.fillStyle = "#ff0000";
+            
+            this.dibujarRejilla();
+            this.dibujarEjesCartesianos();
+        }
+    },
+
+    resetear() {
+        // Resetear transformación y limpiar
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Resetear variables
+        zoomLevel = 1;
+        lastTranslateX = 0;
+        lastTranslateY = 0;
+        formas = [];
+        lineas3D = [];
+        historialEstados = [];
+        posicionHistorial = -1;
+        
+        // Restaurar punto de origen
+        snapPuntos = [{ 
+            x: 400, 
+            y: 250, 
+            tipo: "origen", 
+            forma: { tipo: "punto" } 
+        }];
+        
+        // Configurar canvas
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "#ffffff";
+        ctx.fillStyle = "#ff0000";
+        
+        // Redibujar desde cero
+        this.dibujarEjesCartesianos();
+        this.dibujarRejilla();
+        
+        // Guardar estado
+        canvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        
+        Utilidades.mostrarMensajeTemporalEstado("Vista 2D reiniciada");
+    },
+	
+	mostrarDistanciaVisual(x1, y1, x2, y2) {
         if (!puntoInicial || !distanciaVisualElement) return;
         
         const distancia = Utilidades.calcularDistancia(x1, y1, x2, y2);
@@ -1667,6 +2190,10 @@ const Dibujo = {
         distanciaVisualElement.style.top = (puntoMedio.y - 20) + "px";
         distanciaVisualElement.textContent = distancia.toFixed(2);
         distanciaVisualElement.style.display = "block";
+        
+        // Añadir información para accesibilidad
+        distanciaVisualElement.setAttribute('role', 'status');
+        distanciaVisualElement.setAttribute('aria-label', `Distancia: ${distancia.toFixed(2)} unidades`);
     },
 
     mostrarAnguloVisual(x1, y1, x2, y2) {
@@ -1678,6 +2205,7 @@ const Dibujo = {
         // Actualizar información en barra de estado
         const distancia = Utilidades.calcularDistancia(x1, y1, x2, y2);
         lineInfoElement.textContent = "Longitud: " + distancia.toFixed(2) + " | Ángulo: " + Math.round(angulo) + "°";
+        lineInfoElement.setAttribute('aria-live', 'polite');
         
         // Dibujar ángulo en canvas
         ctx.save();
@@ -1847,7 +2375,11 @@ const Dibujo = {
         if (!puntoInicial || !inputDistanciaElement) return;
         
         const distancia = parseFloat(inputDistanciaElement.value);
-        if (isNaN(distancia)) return;
+        if (isNaN(distancia)) {
+            Utilidades.mostrarMensajeTemporalEstado("Por favor ingrese un valor numérico válido");
+            inputDistanciaElement.focus();
+            return;
+        }
         
         let angulo = anguloActual;
         if (angulo < 0) angulo += 360;
@@ -1886,11 +2418,14 @@ const Dibujo = {
                     added: false
                 });
                 
-                if (container3D.style.display !== 'none') {
+                if (container3D && container3D.style.display !== 'none') {
                     this.createLine3D(puntoInicial.x, puntoInicial.y, x2, y2);
                     lineas3D[lineas3D.length - 1].added = true;
                 }
             }
+            
+            Utilidades.mostrarMensajeTemporalEstado(`Línea creada con longitud ${distancia.toFixed(2)}`);
+            
         } else if (modoActual === "circulo") {
             // Dibujar círculo
             ctx.arc(puntoInicial.x, puntoInicial.y, distancia, 0, Math.PI * 2);
@@ -1904,6 +2439,8 @@ const Dibujo = {
                 radio: distancia,
                 color: "#ffffff"
             });
+            
+            Utilidades.mostrarMensajeTemporalEstado(`Círculo creado con radio ${distancia.toFixed(2)}`);
         }
         
         // Actualizar snapPuntos
@@ -1919,7 +2456,174 @@ const Dibujo = {
         
         // Desactivar botón
         const btnDimension = document.getElementById("btnDimension");
-        if (btnDimension) btnDimension.classList.remove("active");
+        if (btnDimension) {
+            btnDimension.classList.remove("active");
+            btnDimension.setAttribute('aria-pressed', 'false');
+        }
+    },
+    
+    iniciarPolilinea(x, y) {
+        dibujarPolilineaEnProgreso = true;
+        puntosPolilinea = [{x, y}];
+        
+        // Dibujar primer punto
+        ctx.beginPath();
+        ctx.fillStyle = "#ff0000";
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fill();
+        
+        Utilidades.mostrarMensajeTemporalEstado("Polilínea iniciada. Haga clic para añadir puntos, doble clic para finalizar.");
+        canvas.setAttribute('aria-label', 'Dibujando polilínea. Primer punto establecido.');
+    },
+    
+    continuarPolilinea(x, y) {
+        if (!dibujarPolilineaEnProgreso || puntosPolilinea.length === 0) return;
+        
+        const ultimoPunto = puntosPolilinea[puntosPolilinea.length - 1];
+        
+        // Dibujar línea desde el último punto al nuevo
+        ctx.beginPath();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2;
+        ctx.moveTo(ultimoPunto.x, ultimoPunto.y);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        
+        // Añadir nuevo punto a la polilínea
+        puntosPolilinea.push({x, y});
+        
+        // Dibujar punto
+        ctx.beginPath();
+        ctx.fillStyle = "#ff0000";
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fill();
+        
+        Canvas2D.guardarEstado();
+        
+        canvas.setAttribute('aria-label', `Punto añadido a la polilínea. Total: ${puntosPolilinea.length} puntos.`);
+    },
+    
+    finalizarPolilinea() {
+        if (!dibujarPolilineaEnProgreso || puntosPolilinea.length < 2) {
+            dibujarPolilineaEnProgreso = false;
+            puntosPolilinea = [];
+            return;
+        }
+        
+        // Crear forma de polilínea
+        formas.push({
+            tipo: "polilinea",
+            puntos: [...puntosPolilinea],
+            color: "#ffffff"
+        });
+        
+        // Actualizar snap puntos
+        this.actualizarSnapPuntos();
+        
+        // Crear líneas 3D para cada segmento
+        if (escena3DInitializada) {
+            for (let i = 0; i < puntosPolilinea.length - 1; i++) {
+                const p1 = puntosPolilinea[i];
+                const p2 = puntosPolilinea[i + 1];
+                
+                lineas3D.push({
+                    x1: p1.x,
+                    y1: p1.y,
+                    x2: p2.x,
+                    y2: p2.y,
+                    added: false
+                });
+                
+                if (container3D && container3D.style.display !== 'none') {
+                    this.createLine3D(p1.x, p1.y, p2.x, p2.y);
+                    lineas3D[lineas3D.length - 1].added = true;
+                }
+            }
+        }
+        
+        // Resetear estado
+        dibujarPolilineaEnProgreso = false;
+        puntosPolilinea = [];
+        Canvas2D.guardarEstado();
+        
+        Utilidades.mostrarMensajeTemporalEstado("Polilínea completada");
+        canvas.setAttribute('aria-label', 'Polilínea finalizada');
+    },
+    
+    iniciarArco(x, y) {
+        dibujarArcoEnProgreso = true;
+        puntosArco = [{x, y}]; // Primer punto del arco
+        
+        // Dibujar punto inicial
+        ctx.beginPath();
+        ctx.fillStyle = "#ff0000";
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fill();
+        
+        Utilidades.mostrarMensajeTemporalEstado("Arco iniciado. Haga clic para definir punto de control, luego punto final.");
+        canvas.setAttribute('aria-label', 'Dibujando arco. Primer punto establecido.');
+    },
+    
+    continuarArco(x, y) {
+        if (!dibujarArcoEnProgreso) return;
+        
+        if (puntosArco.length === 1) {
+            // Añadir punto de control
+            puntosArco.push({x, y});
+            
+            // Dibujar punto de control
+            ctx.beginPath();
+            ctx.fillStyle = "#00ff00";
+            ctx.arc(x, y, 4, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Dibujar línea desde punto inicial a punto de control (guía)
+            ctx.beginPath();
+            ctx.setLineDash([5, 3]);
+            ctx.strokeStyle = "#00ff00";
+            ctx.moveTo(puntosArco[0].x, puntosArco[0].y);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            Canvas2D.guardarEstado();
+            canvas.setAttribute('aria-label', 'Dibujando arco. Punto de control establecido.');
+            
+        } else if (puntosArco.length === 2) {
+            // Añadir punto final
+            puntosArco.push({x, y});
+            
+            // Dibujar el arco
+            ctx.beginPath();
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 2;
+            ctx.moveTo(puntosArco[0].x, puntosArco[0].y);
+            ctx.quadraticCurveTo(puntosArco[1].x, puntosArco[1].y, x, y);
+            ctx.stroke();
+            
+            // Guardar el arco
+            formas.push({
+                tipo: "arco",
+                x1: puntosArco[0].x,
+                y1: puntosArco[0].y,
+                cx: puntosArco[1].x,
+                cy: puntosArco[1].y,
+                x2: x,
+                y2: y,
+                color: "#ffffff"
+            });
+            
+            // Actualizar snap puntos
+            this.actualizarSnapPuntos();
+            Canvas2D.guardarEstado();
+            
+            // Resetear
+            dibujarArcoEnProgreso = false;
+            puntosArco = [];
+            
+            Utilidades.mostrarMensajeTemporalEstado("Arco completado");
+            canvas.setAttribute('aria-label', 'Arco finalizado');
+        }
     }
 };
 
@@ -1932,593 +2636,1000 @@ const Controles = {
         this.inicializarEventosTeclado();
         this.inicializarCoordenadas();
         this.inicializarSnapConfig();
+        this.inicializarModalSVG();
     },
 
-inicializarBotones() {
-    // Botones de herramientas
-    const botones = {
-        btnElipse: () => { 
-            modoActual = "elipse"; 
-            this.activarBoton("btnElipse"); 
-            this.resetearEstadoDibujo();
-        },
-        btnLinea: () => { 
-            modoActual = "linea"; 
-            this.activarBoton("btnLinea"); 
-            this.resetearEstadoDibujo();
-        },
-        btnRectangulo: () => { 
-            modoActual = "rectangulo"; 
-            this.activarBoton("btnRectangulo"); 
-            this.resetearEstadoDibujo();
-        },
-        btnCirculo: () => { 
-            modoActual = "circulo"; 
-            this.activarBoton("btnCirculo"); 
-            this.resetearEstadoDibujo();
-        },
-        btnMano: () => { 
-            modoActual = "mano"; 
-            this.activarBoton("btnMano"); 
-            this.resetearEstadoDibujo();
-        },
-        btnPolilinea: () => { 
-            modoActual = "polilinea"; 
-            this.activarBoton("btnPolilinea"); 
-            this.resetearEstadoDibujo();
-        },
-        btnArco: () => { 
-            modoActual = "arco"; 
-            this.activarBoton("btnArco"); 
-            this.resetearEstadoDibujo();
-        },
-        btnDimension: () => {
-            dimensionManualActiva = !dimensionManualActiva;
-            const btn = document.getElementById("btnDimension");
-            if (btn) btn.classList.toggle("active");
-            if (entradaDimensionesElement) {
-                entradaDimensionesElement.style.display = dimensionManualActiva ? "block" : "none";
-                if (dimensionManualActiva && inputDistanciaElement) inputDistanciaElement.focus();
-            }
-        },
-        btnAplicarDimensiones: () => Dibujo.aplicarDimensionManual(),
-        btnRestriccion: () => {
-            restriccionAngulo = !restriccionAngulo;
-            const btn = document.getElementById("btnRestriccion");
-            if (btn) btn.textContent = `Restricción 90° (${restriccionAngulo ? "ON" : "OFF"})`;
-        },
-        btnSnap: (e) => {
-            e.stopPropagation();
-            snapActivo = !snapActivo;
-            const btn = document.getElementById("btnSnap");
-            if (btn) btn.textContent = `Snap (${snapActivo ? "ON" : "OFF"})`;
-            
-            const menu = document.getElementById("menuSnapObjetos");
-            if (menu) {
-                menu.style.display = menu.style.display === "block" ? "none" : "block";
-                if (menu.style.display === "block" && btn) {
-                    const rect = btn.getBoundingClientRect();
-                    menu.style.left = `${rect.left}px`;
-                    menu.style.top = `${rect.bottom + 5}px`;
+    inicializarBotones() {
+        // Botones de herramientas
+        const botones = {
+            btnElipse: () => { 
+                modoActual = "elipse"; 
+                this.activarBoton("btnElipse"); 
+                this.resetearEstadoDibujo();
+                canvas.setAttribute('aria-label', 'Herramienta Elipse seleccionada');
+            },
+            btnLinea: () => { 
+                modoActual = "linea"; 
+                this.activarBoton("btnLinea"); 
+                this.resetearEstadoDibujo();
+                canvas.setAttribute('aria-label', 'Herramienta Línea seleccionada');
+            },
+            btnRectangulo: () => { 
+                modoActual = "rectangulo"; 
+                this.activarBoton("btnRectangulo"); 
+                this.resetearEstadoDibujo();
+                canvas.setAttribute('aria-label', 'Herramienta Rectángulo seleccionada');
+            },
+            btnCirculo: () => { 
+                modoActual = "circulo"; 
+                this.activarBoton("btnCirculo"); 
+                this.resetearEstadoDibujo();
+                canvas.setAttribute('aria-label', 'Herramienta Círculo seleccionada');
+            },
+            btnMano: () => { 
+                modoActual = "mano"; 
+                this.activarBoton("btnMano"); 
+                this.resetearEstadoDibujo();
+                canvas.setAttribute('aria-label', 'Herramienta Mano Alzada seleccionada');
+            },
+            btnPolilinea: () => { 
+                modoActual = "polilinea"; 
+                this.activarBoton("btnPolilinea"); 
+                this.resetearEstadoDibujo();
+                canvas.setAttribute('aria-label', 'Herramienta Polilínea seleccionada');
+            },
+            btnArco: () => { 
+                modoActual = "arco"; 
+                this.activarBoton("btnArco"); 
+                this.resetearEstadoDibujo();
+                canvas.setAttribute('aria-label', 'Herramienta Arco seleccionada');
+            },
+            btnDimension: () => {
+                dimensionManualActiva = !dimensionManualActiva;
+                const btn = document.getElementById("btnDimension");
+                if (btn) {
+                    btn.classList.toggle("active");
+                    btn.setAttribute('aria-pressed', dimensionManualActiva ? 'true' : 'false');
+                }
+                if (entradaDimensionesElement) {
+                    entradaDimensionesElement.style.display = dimensionManualActiva ? "block" : "none";
+                    if (dimensionManualActiva && inputDistanciaElement) inputDistanciaElement.focus();
+                }
+                Utilidades.mostrarMensajeTemporalEstado(dimensionManualActiva ? 
+                    "Entrada manual de dimensiones activada" : 
+                    "Entrada manual de dimensiones desactivada");
+            },
+            btnAplicarDimensiones: () => Dibujo.aplicarDimensionManual(),
+            btnRestriccion: () => {
+                restriccionAngulo = !restriccionAngulo;
+                const btn = document.getElementById("btnRestriccion");
+                if (btn) {
+                    btn.textContent = `Restricción 90° (${restriccionAngulo ? "ON" : "OFF"})`;
+                    btn.setAttribute('aria-pressed', restriccionAngulo ? 'true' : 'false');
+                }
+                Utilidades.mostrarMensajeTemporalEstado(restriccionAngulo ? 
+                    "Restricción ortogonal activada" : 
+                    "Restricción ortogonal desactivada");
+            },
+            btnSnap: (e) => {
+                e.stopPropagation();
+                snapActivo = !snapActivo;
+                const btn = document.getElementById("btnSnap");
+                if (btn) {
+                    btn.textContent = `Snap (${snapActivo ? "ON" : "OFF"})`;
+                    btn.setAttribute('aria-pressed', snapActivo ? 'true' : 'false');
+                }
+                
+                const menu = document.getElementById("menuSnapObjetos");
+                if (menu) {
+                    const visible = menu.style.display === "block";
+                    menu.style.display = visible ? "none" : "block";
+                    menu.setAttribute('aria-hidden', visible ? 'true' : 'false');
+                    
+                    if (!visible && btn) {
+                        const rect = btn.getBoundingClientRect();
+                        menu.style.left = `${rect.left}px`;
+                        menu.style.top = `${rect.bottom + 5}px`;
+                    }
+                }
+                
+                Utilidades.mostrarMensajeTemporalEstado(snapActivo ? 
+                    "Snap a objetos activado" : 
+                    "Snap a objetos desactivado");
+            },
+            btnRejilla: () => {
+                rejillaActiva = !rejillaActiva;
+                const btn = document.getElementById("btnRejilla");
+                if (btn) {
+                    btn.textContent = `Rejilla (${rejillaActiva ? "ON" : "OFF"})`;
+                    btn.setAttribute('aria-pressed', rejillaActiva ? 'true' : 'false');
+                }
+                Canvas2D.restaurarEstado();
+                Canvas2D.dibujarRejilla();
+                Utilidades.mostrarMensajeTemporalEstado(rejillaActiva ? 
+                    "Rejilla activada" : 
+                    "Rejilla desactivada");
+            },
+            btnSnapGrid: () => {
+                snapToGridActivo = !snapToGridActivo;
+                const btn = document.getElementById("btnSnapGrid");
+                if (btn) {
+                    btn.textContent = `Snap a Rejilla (${snapToGridActivo ? "ON" : "OFF"})`;
+                    btn.setAttribute('aria-pressed', snapToGridActivo ? 'true' : 'false');
+                }
+                Utilidades.mostrarMensajeTemporalEstado(snapToGridActivo ? 
+                    "Snap a rejilla activado" : 
+                    "Snap a rejilla desactivado");
+            },
+            btnDeshacer: () => this.deshacer(),
+            btnLimpiar: () => {
+                Canvas2D.resetear();
+                Utilidades.mostrarMensajeTemporalEstado("Lienzo limpiado");
+            },
+            btnGuardarSVG: () => {
+                const svgContent = Canvas2D.exportarSVG();
+                if (svgContent) {
+                    const svgOutput = document.getElementById('svgOutput');
+                    if (svgOutput) {
+                        svgOutput.parentElement.style.display = "block";
+                        svgOutput.style.display = "block";
+                    }
+                    Utilidades.mostrarMensajeTemporalEstado("SVG generado");
+                    
+                    // Permitir descarga directa
+                    const enlace = document.createElement('a');
+                    enlace.setAttribute('href', 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgContent));
+                    enlace.setAttribute('download', 'dibujo_cad.svg');
+                    enlace.style.display = 'none';
+                    document.body.appendChild(enlace);
+                    enlace.click();
+                    document.body.removeChild(enlace);
+                }
+            },
+            btnImportarSVG: () => {
+                const modal = document.getElementById("modalImportarSVG");
+                if (modal) {
+                    modal.style.display = "block";
+                    modal.setAttribute('aria-hidden', 'false');
+                    
+                    // Enfoque en el textarea
+                    const textarea = document.getElementById("textareaSVG");
+                    if (textarea) textarea.focus();
+                }
+            },
+            btnAtajos: () => {
+                const modal = document.getElementById("modalAtajos");
+                if (modal) {
+                    modal.style.display = "block";
+                    modal.setAttribute('aria-hidden', 'false');
+                }
+            },
+            cerrarModalAtajos: () => {
+                const modal = document.getElementById("modalAtajos");
+                if (modal) {
+                    modal.style.display = "none";
+                    modal.setAttribute('aria-hidden', 'true');
+                }
+            },
+            btnCerrarAtajos: () => {
+                const modal = document.getElementById("modalAtajos");
+                if (modal) {
+                    modal.style.display = "none";
+                    modal.setAttribute('aria-hidden', 'true');
                 }
             }
-        },
-        btnRejilla: () => {
-            rejillaActiva = !rejillaActiva;
-            const btn = document.getElementById("btnRejilla");
-            if (btn) btn.textContent = `Rejilla (${rejillaActiva ? "ON" : "OFF"})`;
-            Canvas2D.restaurarEstado();
-            Canvas2D.dibujarRejilla();
-        },
-        btnSnapGrid: () => {
-            snapToGridActivo = !snapToGridActivo;
-            const btn = document.getElementById("btnSnapGrid");
-            if (btn) btn.textContent = `Snap a Rejilla (${snapToGridActivo ? "ON" : "OFF"})`;
-        },
-        btnDeshacer: () => this.deshacer(),
-        btnLimpiar: () => Canvas2D.resetear(),
-        btnAtajos: () => {
-            const modal = document.getElementById("modalAtajos");
-            if (modal) modal.style.display = "block";
-        },
-        cerrarModalAtajos: () => {
-            const modal = document.getElementById("modalAtajos");
-            if (modal) modal.style.display = "none";
-        }
-    };
-    
-	        // Función para añadir event listeners de forma segura
-        const añadirEventListener = (id, handler) => {
-            const elemento = document.getElementById(id);
-            if (elemento) {
-                elemento.addEventListener("click", handler);
-            } else {
-                console.warn(`Elemento con ID ${id} no encontrado`);
-            }
         };
-	
-    // Asignar event listeners a todos los botones
+		
+		// Asignar event listeners a todos los botones
     Object.keys(botones).forEach(id => {
-        const btn = document.getElementById(id);
-        if (btn) btn.addEventListener("click", botones[id]);
+        Utilidades.registrarEventos(id, {
+            'click': botones[id]
+        });
     });
     
     // Crear botones adicionales
     this.crearBotonesDinamicos();
 },
 
-    inicializarMouseMovimiento() {
-    canvas.addEventListener("mousemove", (e) => {
-        const rect = canvas.getBoundingClientRect();
-        let x = e.clientX - rect.left;
-        let y = e.clientY - rect.top;
-        
-        // Aplicar snap si es necesario
-        const snapResultado = Dibujo.encontrarSnapPunto(x, y);
-        if (snapResultado.encontrado) {
-            x = snapResultado.x;
-            y = snapResultado.y;
-        }
-        
-        // Actualizar coordenadas mostradas
-        if (coordsElement) {
-            coordsElement.textContent = "X: " + Math.round(x) + ", Y: " + Math.round(y);
-        }
-        
-        // Actualizar inputs de coordenadas precisas
-        if (inputXElement && inputYElement) {
-            inputXElement.value = Math.round(x * 10) / 10;
-            inputYElement.value = Math.round(y * 10) / 10;
-        }
-        
-        // Si hay un punto inicial, mostrar línea de proyección
-        if (puntoInicial !== null && !dimensionManualActiva) {
-            Canvas2D.restaurarEstado();
+ inicializarMouseMovimiento() {
+        canvas.addEventListener("mousemove", (e) => {
+            const rect = canvas.getBoundingClientRect();
+            let x = e.clientX - rect.left;
+            let y = e.clientY - rect.top;
             
-            // Dibujar punto inicial
-            ctx.beginPath();
-            ctx.fillStyle = "#ff0000";
-            ctx.arc(puntoInicial.x, puntoInicial.y, 4, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Mostrar indicador de snap
+            // Aplicar snap si es necesario
+            const snapResultado = Dibujo.encontrarSnapPunto(x, y);
             if (snapResultado.encontrado) {
-                Dibujo.dibujarSnapIndicador(x, y);
+                x = snapResultado.x;
+                y = snapResultado.y;
             }
             
-            // Aplicar restricción de ángulo si está activa
-            const puntoFinal = restriccionAngulo 
-                ? Utilidades.restringirAngulo(puntoInicial.x, puntoInicial.y, x, y) 
-                : {x, y};
-            
-            // Dibujar línea de proyección
-            ctx.beginPath();
-            ctx.setLineDash([5, 3]);
-            ctx.strokeStyle = "#ffffff";
-            ctx.lineWidth = 2;
-            ctx.moveTo(puntoInicial.x, puntoInicial.y);
-            ctx.lineTo(puntoFinal.x, puntoFinal.y);
-            ctx.stroke();
-            ctx.setLineDash([]);
-            
-            // Mostrar información visual
-            Dibujo.mostrarAnguloVisual(puntoInicial.x, puntoInicial.y, puntoFinal.x, puntoFinal.y);
-            Dibujo.mostrarDistanciaVisual(puntoInicial.x, puntoInicial.y, puntoFinal.x, puntoFinal.y);
-            Dibujo.mostrarOrtoVisual(puntoInicial.x, puntoInicial.y, puntoFinal.x, puntoFinal.y);
-            
-            // Actualizar información de línea
-            if (lineInfoElement) {
-                const longitud = Math.round(Utilidades.calcularDistancia(puntoInicial.x, puntoInicial.y, puntoFinal.x, puntoFinal.y));
-                const angulo = Math.round(Utilidades.calcularAngulo(puntoInicial.x, puntoInicial.y, puntoFinal.x, puntoFinal.y));
-                lineInfoElement.textContent = "Longitud: " + longitud + " | Ángulo: " + angulo + "°";
+            // Actualizar coordenadas mostradas
+            if (coordsElement) {
+                coordsElement.textContent = "X: " + Math.round(x) + ", Y: " + Math.round(y);
             }
-        } 
-        // Si estamos dibujando a mano
-        else if (dibujando && modoActual === "mano") {
-            ctx.beginPath();
-            ctx.moveTo(xAnterior, yAnterior);
-            ctx.lineTo(x, y);
-            ctx.strokeStyle = "#ffffff";
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            xAnterior = x;
-            yAnterior = y;
-        } 
-        // Si no hay punto inicial, buscar puntos en líneas existentes
-        else {
-            Canvas2D.restaurarEstado();
-            Canvas2D.dibujarPuntosExtremos();
             
-            const puntoEnLinea = Dibujo.encontrarPuntoEnLinea(x, y);
-            if (puntoEnLinea.encontrado) {
-                Dibujo.dibujarPuntosEnLinea();
+            // Actualizar inputs de coordenadas precisas
+            if (inputXElement && inputYElement) {
+                inputXElement.value = Math.round(x * 10) / 10;
+                inputYElement.value = Math.round(y * 10) / 10;
             }
-        }
-    });
-},
-
-inicializarMouseClick() {
-    canvas.addEventListener("mousedown", (e) => {
-        // Ignorar botón del medio (ya manejado por panorámica)
-        if (e.button === 1) return;
-        
-        // Solo procesar botón izquierdo
-        if (e.button !== 0) return;
-        
-        const rect = canvas.getBoundingClientRect();
-        let x = e.clientX - rect.left;
-        let y = e.clientY - rect.top;
-        
-        // Aplicar snap si necesario
-        const snapResultado = Dibujo.encontrarSnapPunto(x, y);
-        if (snapResultado.encontrado) {
-            x = snapResultado.x;
-            y = snapResultado.y;
-        }
-        
-        // Usar coordenadas precisas si están activas
-        if (inputXElement && inputYElement) {
-            x = parseFloat(inputXElement.value);
-            y = parseFloat(inputYElement.value);
-        }
-        
-        // Manejo según el modo actual
-        switch (modoActual) {
-            case "linea":
-            case "rectangulo":
-            case "circulo":
-            case "elipse":
-                if (puntoInicial === null) {
-                    Dibujo.iniciarDibujoEn(x, y);
-                } else {
-                    const puntoFinal = restriccionAngulo 
-                        ? Utilidades.restringirAngulo(puntoInicial.x, puntoInicial.y, x, y) 
-                        : {x, y};
+            
+            // Actualizar cursor 3D
+            const cursor3D = document.getElementById('cursor3D');
+            if (cursor3D) {
+                cursor3D.style.left = (x - 10) + 'px';
+                cursor3D.style.top = (y - 10) + 'px';
+            }
+            
+            // Si hay un punto inicial, mostrar línea de proyección
+            if (puntoInicial !== null && !dimensionManualActiva) {
+                Canvas2D.restaurarEstado();
+                
+                // Dibujar punto inicial
+                ctx.beginPath();
+                ctx.fillStyle = "#ff0000";
+                ctx.arc(puntoInicial.x, puntoInicial.y, 4, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Mostrar indicador de snap
+                if (snapResultado.encontrado) {
+                    Dibujo.dibujarSnapIndicador(x, y);
+                }
+                
+                // Aplicar restricción de ángulo si está activa
+                const puntoFinal = restriccionAngulo 
+                    ? Utilidades.restringirAngulo(puntoInicial.x, puntoInicial.y, x, y) 
+                    : {x, y};
+                
+                // Dibujar línea de proyección
+                ctx.beginPath();
+                ctx.setLineDash([5, 3]);
+                ctx.strokeStyle = "#ffffff";
+                ctx.lineWidth = 2;
+                ctx.moveTo(puntoInicial.x, puntoInicial.y);
+                ctx.lineTo(puntoFinal.x, puntoFinal.y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                // Mostrar información visual
+                Dibujo.mostrarAnguloVisual(puntoInicial.x, puntoInicial.y, puntoFinal.x, puntoFinal.y);
+                Dibujo.mostrarDistanciaVisual(puntoInicial.x, puntoInicial.y, puntoFinal.x, puntoFinal.y);
+                Dibujo.mostrarOrtoVisual(puntoInicial.x, puntoInicial.y, puntoFinal.x, puntoFinal.y);
+                
+                // Actualizar información de línea
+                if (lineInfoElement) {
+                    const longitud = Math.round(Utilidades.calcularDistancia(puntoInicial.x, puntoInicial.y, puntoFinal.x, puntoFinal.y));
+                    const angulo = Math.round(Utilidades.calcularAngulo(puntoInicial.x, puntoInicial.y, puntoFinal.x, puntoFinal.y));
+                    lineInfoElement.textContent = "Longitud: " + longitud + " | Ángulo: " + angulo + "°";
+                }
+            } 
+            // Si estamos dibujando una polilínea en progreso
+            else if (dibujarPolilineaEnProgreso && puntosPolilinea.length > 0) {
+                Canvas2D.restaurarEstado();
+                
+                // Dibujar puntos existentes
+                puntosPolilinea.forEach(punto => {
+                    ctx.beginPath();
+                    ctx.fillStyle = "#ff0000";
+                    ctx.arc(punto.x, punto.y, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+                
+                // Dibujar segmentos existentes
+                ctx.beginPath();
+                ctx.strokeStyle = "#ffffff";
+                ctx.lineWidth = 2;
+                ctx.moveTo(puntosPolilinea[0].x, puntosPolilinea[0].y);
+                for (let i = 1; i < puntosPolilinea.length; i++) {
+                    ctx.lineTo(puntosPolilinea[i].x, puntosPolilinea[i].y);
+                }
+                ctx.stroke();
+                
+                // Dibujar línea de proyección al cursor
+                const ultimoPunto = puntosPolilinea[puntosPolilinea.length - 1];
+                ctx.beginPath();
+                ctx.setLineDash([5, 3]);
+                ctx.moveTo(ultimoPunto.x, ultimoPunto.y);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                // Mostrar distancia
+                Dibujo.mostrarDistanciaVisual(ultimoPunto.x, ultimoPunto.y, x, y);
+            }
+            // Si estamos dibujando un arco en progreso
+            else if (dibujarArcoEnProgreso && puntosArco.length > 0) {
+                Canvas2D.restaurarEstado();
+                
+                // Dibujar puntos existentes
+                puntosArco.forEach((punto, index) => {
+                    ctx.beginPath();
+                    ctx.fillStyle = index === 1 ? "#00ff00" : "#ff0000"; // Punto de control en verde
+                    ctx.arc(punto.x, punto.y, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+                
+                // Si tenemos un punto, mostrar línea al cursor
+                if (puntosArco.length === 1) {
+                    ctx.beginPath();
+                    ctx.setLineDash([5, 3]);
+                    ctx.strokeStyle = "#00ff00";
+                    ctx.moveTo(puntosArco[0].x, puntosArco[0].y);
+                    ctx.lineTo(x, y);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
                     
-                    // Dibujar en 2D según el modo
+                    // Mostrar distancia
+                    Dibujo.mostrarDistanciaVisual(puntosArco[0].x, puntosArco[0].y, x, y);
+                }
+                // Si tenemos dos puntos, mostrar preview del arco
+                else if (puntosArco.length === 2) {
+                    // Dibujar líneas de control (guías)
+                    ctx.beginPath();
+                    ctx.setLineDash([5, 3]);
+                    ctx.strokeStyle = "#00ff00";
+                    ctx.moveTo(puntosArco[0].x, puntosArco[0].y);
+                    ctx.lineTo(puntosArco[1].x, puntosArco[1].y);
+                    ctx.moveTo(puntosArco[1].x, puntosArco[1].y);
+                    ctx.lineTo(x, y);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    
+                    // Dibujar preview del arco
                     ctx.beginPath();
                     ctx.strokeStyle = "#ffffff";
                     ctx.lineWidth = 2;
-                    
-                    if (modoActual === "linea") {
-                        ctx.moveTo(puntoInicial.x, puntoInicial.y);
-                        ctx.lineTo(puntoFinal.x, puntoFinal.y);
-                        ctx.stroke();
-                        
-                        // Guardar la línea
-                        formas.push({
-                            tipo: "linea",
-                            x1: puntoInicial.x,
-                            y1: puntoInicial.y,
-                            x2: puntoFinal.x,
-                            y2: puntoFinal.y,
-                            color: "#ffffff"
-                        });
-                        
-                        // Crear en 3D si es necesario
-                        lineas3D.push({
-                            x1: puntoInicial.x,
-                            y1: puntoInicial.y,
-                            x2: puntoFinal.x,
-                            y2: puntoFinal.y,
-                            added: false
-                        });
-                        
-                        if (escena3DInitializada) {
-                            Dibujo.createLine3D(puntoInicial.x, puntoInicial.y, puntoFinal.x, puntoFinal.y);
-                            lineas3D[lineas3D.length - 1].added = true;
-                        }
-                        
-                        // Actualizar información de línea
-                        if (lineInfoElement) {
-                            const distancia = Utilidades.calcularDistancia(puntoInicial.x, puntoInicial.y, puntoFinal.x, puntoFinal.y);
-                            let angulo = Utilidades.calcularAngulo(puntoInicial.x, puntoInicial.y, puntoFinal.x, puntoFinal.y);
-                            if (angulo < 0) angulo += 360;
-                            lineInfoElement.textContent = "Longitud: " + distancia.toFixed(2) + " | Ángulo: " + Math.round(angulo) + "°";
-                        }
-                    } else if (modoActual === "rectangulo") {
-                        const ancho = puntoFinal.x - puntoInicial.x;
-                        const alto = puntoFinal.y - puntoInicial.y;
-                        ctx.rect(puntoInicial.x, puntoInicial.y, ancho, alto);
-                        ctx.stroke();
-                        
-                        formas.push({
-                            tipo: "rectangulo",
-                            x: puntoInicial.x,
-                            y: puntoInicial.y,
-                            ancho,
-                            alto,
-                            color: "#ffffff"
-                        });
-                    } else if (modoActual === "circulo") {
-                        const radio = Utilidades.calcularDistancia(puntoInicial.x, puntoInicial.y, puntoFinal.x, puntoFinal.y);
-                        ctx.arc(puntoInicial.x, puntoInicial.y, radio, 0, Math.PI * 2);
-                        ctx.stroke();
-                        
-                        formas.push({
-                            tipo: "circulo",
-                            x: puntoInicial.x,
-                            y: puntoInicial.y,
-                            radio,
-                            color: "#ffffff"
-                        });
-                    } else if (modoActual === "elipse") {
-                        const radiusX = Math.abs(puntoFinal.x - puntoInicial.x);
-                        const radiusY = Math.abs(puntoFinal.y - puntoInicial.y);
-                        Canvas2D.dibujarElipse(puntoInicial.x, puntoInicial.y, radiusX, radiusY);
-                        
-                        formas.push({
-                            tipo: "elipse",
-                            x: puntoInicial.x,
-                            y: puntoInicial.y,
-                            radiusX,
-                            radiusY,
-                            color: "#ffffff"
-                        });
-                    }
-                    
-                    // Finalizar la operación
-                    puntoInicial = null;
-                    Dibujo.actualizarSnapPuntos();
-                    Canvas2D.guardarEstado();
-                    Canvas2D.dibujarPuntosExtremos();
+                    ctx.moveTo(puntosArco[0].x, puntosArco[0].y);
+                    ctx.quadraticCurveTo(puntosArco[1].x, puntosArco[1].y, x, y);
+                    ctx.stroke();
                 }
-                break;
-            
-            case "mano":
-                dibujando = true;
+            }
+            // Si estamos dibujando a mano
+            else if (dibujando && modoActual === "mano") {
+                ctx.beginPath();
+                ctx.moveTo(xAnterior, yAnterior);
+                ctx.lineTo(x, y);
+                ctx.strokeStyle = "#ffffff";
+                ctx.lineWidth = 2;
+                ctx.stroke();
                 xAnterior = x;
                 yAnterior = y;
-                break;
-        }
-    });
-    
-    canvas.addEventListener("mouseup", (e) => {
-        if (e.button === 0 && dibujando && modoActual === "mano") {
-            dibujando = false;
-            Canvas2D.guardarEstado();
-        }
-    });
-},
-
-
-
-crearBotonesDinamicos() {
-    // Botón para resetear zoom
-    const resetZoomBtn = document.createElement('button');
-    resetZoomBtn.textContent = 'Resetear Zoom';
-    resetZoomBtn.style.marginTop = '10px';
-    resetZoomBtn.addEventListener('click', () => Canvas2D.resetearZoom());
-    document.body.appendChild(resetZoomBtn);
-    
-    // Botón para centrar vistas
-    const centrarVistasBtn = document.createElement('button');
-    centrarVistasBtn.id = 'btnCentrarVistas';
-    centrarVistasBtn.textContent = 'Centrar Vistas';
-    centrarVistasBtn.style.marginTop = '10px';
-    centrarVistasBtn.style.marginLeft = '5px';
-    centrarVistasBtn.addEventListener('click', () => {
-        Canvas2D.resetearZoom();
-        if (escena3DInitializada) Escena3D.resetear();
-    });
-    document.body.appendChild(centrarVistasBtn);
-    
-    // Botón para reinicio completo
-    const reinicioTotalBtn = document.createElement('button');
-    reinicioTotalBtn.textContent = 'Reinicio Completo';
-    reinicioTotalBtn.style.marginTop = '10px';
-    reinicioTotalBtn.style.backgroundColor = '#ff3333';
-    reinicioTotalBtn.addEventListener('click', () => Canvas2D.reinicioCompleto());
-    document.body.appendChild(reinicioTotalBtn);
-},
-
-inicializarEventosTeclado() {
-    document.addEventListener('keydown', (e) => {
-        // ESC para cancelar la operación actual
-        if (e.key === 'Escape') {
-            if (puntoInicial !== null) {
-                puntoInicial = null;
+            } 
+            // Si no hay punto inicial, buscar puntos en líneas existentes
+            else {
                 Canvas2D.restaurarEstado();
                 Canvas2D.dibujarPuntosExtremos();
                 
-                // Ocultar indicadores visuales
-                if (anguloVisualElement) anguloVisualElement.style.display = "none";
-                if (distanciaVisualElement) distanciaVisualElement.style.display = "none";
-                if (ortoVisualElement) ortoVisualElement.style.display = "none";
-                if (anguloInfoElement) anguloInfoElement.style.display = "none";
-                
-                Utilidades.mostrarMensajeTemporalEstado("Operación cancelada");
-            }
-            
-            // Cancelar dibujo de polilínea/arco si está en progreso
-            if (dibujarPolilineaEnProgreso || dibujarArcoEnProgreso) {
-                dibujarPolilineaEnProgreso = false;
-                dibujarArcoEnProgreso = false;
-                puntosPolilinea = [];
-                puntosArco = [];
-                Canvas2D.restaurarEstado();
-                Canvas2D.dibujarPuntosExtremos();
-                Utilidades.mostrarMensajeTemporalEstado("Operación cancelada");
-            }
-            
-            // Cerrar menús o modales abiertos
-            const elementos = [
-                "menuSnapObjetos", 
-                "modalAtajos", 
-                "modalImportarSVG"
-            ];
-            elementos.forEach(id => {
-                const elem = document.getElementById(id);
-                if (elem) elem.style.display = "none";
-            });
-        }
-        
-        // F8 para activar/desactivar restricción ortogonal
-        else if (e.key === 'F8') {
-            e.preventDefault();
-            restriccionAngulo = !restriccionAngulo;
-            const btn = document.getElementById("btnRestriccion");
-            if (btn) btn.textContent = `Restricción 90° (${restriccionAngulo ? "ON" : "OFF"})`;
-            Utilidades.mostrarMensajeTemporalEstado(`Modo ortogonal ${restriccionAngulo ? "activado" : "desactivado"}`);
-        }
-        
-        // CTRL+Z para deshacer
-        else if (e.key === 'z' && (e.ctrlKey || e.metaKey)) {
-            e.preventDefault();
-            this.deshacer();
-            Utilidades.mostrarMensajeTemporalEstado("Acción deshecha");
-        }
-    });
-},
-
-inicializarCoordenadas() {
-    inputXElement = document.getElementById("inputX");
-    inputYElement = document.getElementById("inputY");
-    
-    if (inputXElement && inputYElement) {
-        // Cambio en input X
-        inputXElement.addEventListener("change", () => {
-            if (puntoInicial && !dimensionManualActiva) {
-                const x = parseFloat(inputXElement.value);
-                const y = parseFloat(inputYElement.value);
-                Dibujo.actualizarDibujoConCoordenadas(x, y);
-            }
-        });
-        
-        // Cambio en input Y
-        inputYElement.addEventListener("change", () => {
-            if (puntoInicial && !dimensionManualActiva) {
-                const x = parseFloat(inputXElement.value);
-                const y = parseFloat(inputYElement.value);
-                Dibujo.actualizarDibujoConCoordenadas(x, y);
-            }
-        });
-        
-        // Tecla Enter en input X
-        inputXElement.addEventListener("keypress", (e) => {
-            if (e.key === "Enter") {
-                inputYElement.focus();
-            }
-        });
-        
-        // Tecla Enter en input Y
-        inputYElement.addEventListener("keypress", (e) => {
-            if (e.key === "Enter") {
-                const x = parseFloat(inputXElement.value);
-                const y = parseFloat(inputYElement.value);
-                
-                if (puntoInicial) {
-                    Dibujo.actualizarDibujoConCoordenadas(x, y);
-                } else {
-                    Dibujo.iniciarDibujoEn(x, y);
+                const puntoEnLinea = Dibujo.encontrarPuntoEnLinea(x, y);
+                if (puntoEnLinea.encontrado) {
+                    Dibujo.dibujarPuntosEnLinea();
                 }
             }
         });
-    }
-},
+    },
 
-inicializarSnapConfig() {
-    // Configurar event listeners para opciones de snap
-    const snapOptions = [
-        "snapPuntoFinal",
-        "snapPuntoMedio",
-        "snapCentro",
-        "snapCentroGeometrico",
-        "snapPunto",
-        "snapCuadrante",
-        "snapInterseccion",
-        "snapExtension",
-        "snapInsercion",
-        "snapPerpendicular",
-        "snapTangente",
-        "snapCercano",
-        "snapInterseccionFicticia",
-        "snapParalelo"
-    ];
-    
-    snapOptions.forEach(id => {
-        const checkbox = document.getElementById(id);
-        if (checkbox) {
-            checkbox.addEventListener("change", function() {
-                const snapType = id.replace("snap", "");
-                const propName = snapType.charAt(0).toLowerCase() + snapType.slice(1);
-                tiposSnap[propName] = this.checked;
-                Dibujo.actualizarSnapPuntos();
+    inicializarMouseClick() {
+        canvas.addEventListener("mousedown", (e) => {
+            // Ignorar botón del medio (ya manejado por panorámica)
+            if (e.button === 1) return;
+            
+            // Solo procesar botón izquierdo
+            if (e.button !== 0) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            let x = e.clientX - rect.left;
+            let y = e.clientY - rect.top;
+            
+            // Aplicar snap si necesario
+            const snapResultado = Dibujo.encontrarSnapPunto(x, y);
+            if (snapResultado.encontrado) {
+                x = snapResultado.x;
+                y = snapResultado.y;
+            }
+            
+            // Usar coordenadas precisas si están activas
+            if (inputXElement && inputYElement) {
+                const inputX = parseFloat(inputXElement.value);
+                const inputY = parseFloat(inputYElement.value);
+                if (!isNaN(inputX) && !isNaN(inputY)) {
+                    x = inputX;
+                    y = inputY;
+                }
+            }
+            
+            // Manejo según el modo actual
+            switch (modoActual) {
+                case "linea":
+                case "rectangulo":
+                case "circulo":
+                case "elipse":
+                    if (puntoInicial === null) {
+                        Dibujo.iniciarDibujoEn(x, y);
+                    } else {
+                        const puntoFinal = restriccionAngulo 
+                            ? Utilidades.restringirAngulo(puntoInicial.x, puntoInicial.y, x, y) 
+                            : {x, y};
+                        
+                        // Dibujar en 2D según el modo
+                        ctx.beginPath();
+                        ctx.strokeStyle = "#ffffff";
+                        ctx.lineWidth = 2;
+                        
+                        if (modoActual === "linea") {
+                            ctx.moveTo(puntoInicial.x, puntoInicial.y);
+                            ctx.lineTo(puntoFinal.x, puntoFinal.y);
+                            ctx.stroke();
+                            
+                            // Guardar la línea
+                            formas.push({
+                                tipo: "linea",
+                                x1: puntoInicial.x,
+                                y1: puntoInicial.y,
+                                x2: puntoFinal.x,
+                                y2: puntoFinal.y,
+                                color: "#ffffff"
+                            });
+                            
+                            // Crear en 3D si es necesario
+                            lineas3D.push({
+                                x1: puntoInicial.x,
+                                y1: puntoInicial.y,
+                                x2: puntoFinal.x,
+                                y2: puntoFinal.y,
+                                added: false
+                            });
+                            
+                            if (escena3DInitializada) {
+                                Dibujo.createLine3D(puntoInicial.x, puntoInicial.y, puntoFinal.x, puntoFinal.y);
+                                lineas3D[lineas3D.length - 1].added = true;
+                            }
+                            
+                            // Actualizar información de línea
+                            if (lineInfoElement) {
+                                const distancia = Utilidades.calcularDistancia(puntoInicial.x, puntoInicial.y, puntoFinal.x, puntoFinal.y);
+                                let angulo = Utilidades.calcularAngulo(puntoInicial.x, puntoInicial.y, puntoFinal.x, puntoFinal.y);
+                                if (angulo < 0) angulo += 360;
+                                lineInfoElement.textContent = "Longitud: " + distancia.toFixed(2) + " | Ángulo: " + Math.round(angulo) + "°";
+                            }
+                            
+                            Utilidades.mostrarMensajeTemporalEstado("Línea creada");
+                            
+                        } else if (modoActual === "rectangulo") {
+                            const ancho = puntoFinal.x - puntoInicial.x;
+                            const alto = puntoFinal.y - puntoInicial.y;
+                            ctx.rect(puntoInicial.x, puntoInicial.y, ancho, alto);
+                            ctx.stroke();
+                            
+                            formas.push({
+                                tipo: "rectangulo",
+                                x: puntoInicial.x,
+                                y: puntoInicial.y,
+                                ancho,
+                                alto,
+                                color: "#ffffff"
+                            });
+                            
+                            // Crear líneas 3D para el rectángulo
+                            if (escena3DInitializada) {
+                                // Línea superior
+                                Dibujo.createLine3D(puntoInicial.x, puntoInicial.y, puntoInicial.x + ancho, puntoInicial.y);
+                                // Línea derecha
+                                Dibujo.createLine3D(puntoInicial.x + ancho, puntoInicial.y, puntoInicial.x + ancho, puntoInicial.y + alto);
+                                // Línea inferior
+                                Dibujo.createLine3D(puntoInicial.x + ancho, puntoInicial.y + alto, puntoInicial.x, puntoInicial.y + alto);
+                                // Línea izquierda
+                                Dibujo.createLine3D(puntoInicial.x, puntoInicial.y + alto, puntoInicial.x, puntoInicial.y);
+                                
+                                // Actualizar líneas 3D
+                                for (let i = 0; i < 4; i++) {
+                                    lineas3D.push({
+                                        added: true
+                                    });
+                                }
+                            }
+                            
+                            Utilidades.mostrarMensajeTemporalEstado("Rectángulo creado");
+                            
+                        } else if (modoActual === "circulo") {
+                            const radio = Utilidades.calcularDistancia(puntoInicial.x, puntoInicial.y, puntoFinal.x, puntoFinal.y);
+                            ctx.arc(puntoInicial.x, puntoInicial.y, radio, 0, Math.PI * 2);
+                            ctx.stroke();
+                            
+                            formas.push({
+                                tipo: "circulo",
+                                x: puntoInicial.x,
+                                y: puntoInicial.y,
+                                radio,
+                                color: "#ffffff"
+                            });
+                            
+                            Utilidades.mostrarMensajeTemporalEstado("Círculo creado");
+                            
+                        } else if (modoActual === "elipse") {
+                            const radiusX = Math.abs(puntoFinal.x - puntoInicial.x);
+                            const radiusY = Math.abs(puntoFinal.y - puntoInicial.y);
+                            Canvas2D.dibujarElipse(puntoInicial.x, puntoInicial.y, radiusX, radiusY);
+                            
+                            formas.push({
+                                tipo: "elipse",
+                                x: puntoInicial.x,
+                                y: puntoInicial.y,
+                                radiusX,
+                                radiusY,
+                                color: "#ffffff"
+                            });
+                            
+                            Utilidades.mostrarMensajeTemporalEstado("Elipse creada");
+                        }
+                        
+                        // Finalizar la operación
+                        puntoInicial = null;
+                        Dibujo.actualizarSnapPuntos();
+                        Canvas2D.guardarEstado();
+                        Canvas2D.dibujarPuntosExtremos();
+                    }
+                    break;
+                
+                case "polilinea":
+                    // Detectar doble clic para finalizar polilínea
+                    const ahora = new Date().getTime();
+                    if (this.ultimoClick && ahora - this.ultimoClick < 300 && dibujarPolilineaEnProgreso) {
+                        Dibujo.finalizarPolilinea();
+                    } else {
+                        if (!dibujarPolilineaEnProgreso) {
+                            Dibujo.iniciarPolilinea(x, y);
+                        } else {
+                            Dibujo.continuarPolilinea(x, y);
+                        }
+                        this.ultimoClick = ahora;
+                    }
+                    break;
+                    
+                case "arco":
+                    if (!dibujarArcoEnProgreso) {
+                        Dibujo.iniciarArco(x, y);
+                    } else {
+                        Dibujo.continuarArco(x, y);
+                    }
+                    break;
+                
+                case "mano":
+                    dibujando = true;
+                    xAnterior = x;
+                    yAnterior = y;
+                    break;
+            }
+        });
+        
+        canvas.addEventListener("mouseup", (e) => {
+            if (e.button === 0 && dibujando && modoActual === "mano") {
+                dibujando = false;
+                Canvas2D.guardarEstado();
+            }
+        });
+        
+        canvas.addEventListener("dblclick", (e) => {
+            if (modoActual === "polilinea" && dibujarPolilineaEnProgreso) {
+                Dibujo.finalizarPolilinea();
+            }
+        });
+    },
+
+    crearBotonesDinamicos() {
+        // Botón para resetear zoom
+        const resetZoomBtn = Utilidades.crearElementoUI('button', 
+            { 
+                textContent: 'Resetear Zoom',
+                'aria-label': 'Resetear nivel de zoom' 
+            }, 
+            { 
+                marginTop: '10px' 
+            }, 
+            { 
+                'click': () => Canvas2D.resetearZoom() 
+            }
+        );
+        document.body.appendChild(resetZoomBtn);
+        
+        // Botón para centrar vistas
+        const centrarVistasBtn = Utilidades.crearElementoUI('button', 
+            { 
+                id: 'btnCentrarVistas',
+                textContent: 'Centrar Vistas',
+                'aria-label': 'Centrar vistas 2D y 3D' 
+            }, 
+            { 
+                marginTop: '10px',
+                marginLeft: '5px' 
+            }, 
+            { 
+                'click': () => {
+                    Canvas2D.resetearZoom();
+                    if (escena3DInitializada) Escena3D.resetear();
+                    Utilidades.mostrarMensajeTemporalEstado("Vistas centradas");
+                } 
+            }
+        );
+        document.body.appendChild(centrarVistasBtn);
+        
+        // Botón para reinicio completo
+        const reinicioTotalBtn = Utilidades.crearElementoUI('button', 
+            { 
+                textContent: 'Reinicio Completo',
+                'aria-label': 'Reiniciar completamente la aplicación' 
+            }, 
+            { 
+                marginTop: '10px',
+                backgroundColor: '#ff3333' 
+            }, 
+            { 
+                'click': () => {
+                    if (confirm("¿Está seguro de reiniciar completamente la aplicación? Se perderán todos los cambios.")) {
+                        Canvas2D.reinicioCompleto();
+                    }
+                } 
+            }
+        );
+        document.body.appendChild(reinicioTotalBtn);
+    },
+
+    inicializarEventosTeclado() {
+        document.addEventListener('keydown', (e) => {
+            // ESC para cancelar la operación actual
+            if (e.key === 'Escape') {
+                if (puntoInicial !== null) {
+                    puntoInicial = null;
+                    Canvas2D.restaurarEstado();
+                    Canvas2D.dibujarPuntosExtremos();
+                    
+                    // Ocultar indicadores visuales
+                    if (anguloVisualElement) anguloVisualElement.style.display = "none";
+                    if (distanciaVisualElement) distanciaVisualElement.style.display = "none";
+                    if (ortoVisualElement) ortoVisualElement.style.display = "none";
+                    if (anguloInfoElement) anguloInfoElement.style.display = "none";
+                    
+                    Utilidades.mostrarMensajeTemporalEstado("Operación cancelada");
+                }
+                
+                // Cancelar dibujo de polilínea/arco si está en progreso
+                if (dibujarPolilineaEnProgreso || dibujarArcoEnProgreso) {
+                    dibujarPolilineaEnProgreso = false;
+                    dibujarArcoEnProgreso = false;
+                    puntosPolilinea = [];
+                    puntosArco = [];
+                    Canvas2D.restaurarEstado();
+                    Canvas2D.dibujarPuntosExtremos();
+                    Utilidades.mostrarMensajeTemporalEstado("Operación cancelada");
+                }
+                
+                // Cerrar menús o modales abiertos
+                const elementos = [
+                    "menuSnapObjetos", 
+                    "modalAtajos", 
+                    "modalImportarSVG"
+                ];
+                elementos.forEach(id => {
+                    const elem = document.getElementById(id);
+                    if (elem) {
+                        elem.style.display = "none";
+                        elem.setAttribute('aria-hidden', 'true');
+                    }
+                });
+            }
+            
+            // F8 para activar/desactivar restricción ortogonal
+            else if (e.key === 'F8') {
+                e.preventDefault();
+                restriccionAngulo = !restriccionAngulo;
+                const btn = document.getElementById("btnRestriccion");
+                if (btn) {
+                    btn.textContent = `Restricción 90° (${restriccionAngulo ? "ON" : "OFF"})`;
+                    btn.setAttribute('aria-pressed', restriccionAngulo ? 'true' : 'false');
+                }
+                Utilidades.mostrarMensajeTemporalEstado(`Modo ortogonal ${restriccionAngulo ? "activado" : "desactivado"}`);
+            }
+            
+            // CTRL+Z para deshacer
+            else if (e.key === 'z' && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                this.deshacer();
+                Utilidades.mostrarMensajeTemporalEstado("Acción deshecha");
+            }
+            
+            // Teclas numéricas para cambiar herramientas
+            if (e.key >= '1' && e.key <= '7' && !(e.ctrlKey || e.altKey || e.metaKey)) {
+                e.preventDefault();
+                const index = parseInt(e.key) - 1;
+                const herramientas = ["btnLinea", "btnPolilinea", "btnRectangulo", "btnCirculo", "btnElipse", "btnArco", "btnMano"];
+                if (index < herramientas.length) {
+                    const btn = document.getElementById(herramientas[index]);
+                    if (btn) btn.click();
+                }
+            }
+        });
+    },
+
+    inicializarCoordenadas() {
+        inputXElement = document.getElementById("inputX");
+        inputYElement = document.getElementById("inputY");
+        
+        if (inputXElement && inputYElement) {
+            // Cambio en input X
+            inputXElement.addEventListener("change", () => {
+                if (puntoInicial && !dimensionManualActiva) {
+                    const x = parseFloat(inputXElement.value);
+                    const y = parseFloat(inputYElement.value);
+                    if (!isNaN(x) && !isNaN(y)) {
+                        Dibujo.actualizarDibujoConCoordenadas(x, y);
+                    }
+                }
             });
+            
+            // Cambio en input Y
+            inputYElement.addEventListener("change", () => {
+                if (puntoInicial && !dimensionManualActiva) {
+                    const x = parseFloat(inputXElement.value);
+                    const y = parseFloat(inputYElement.value);
+                    if (!isNaN(x) && !isNaN(y)) {
+                        Dibujo.actualizarDibujoConCoordenadas(x, y);
+                    }
+                }
+            });
+            
+            // Tecla Enter en input X
+            inputXElement.addEventListener("keypress", (e) => {
+                if (e.key === "Enter") {
+                    inputYElement.focus();
+                }
+            });
+            
+            // Tecla Enter en input Y
+            inputYElement.addEventListener("keypress", (e) => {
+                if (e.key === "Enter") {
+                    const x = parseFloat(inputXElement.value);
+                    const y = parseFloat(inputYElement.value);
+                    
+                    if (!isNaN(x) && !isNaN(y)) {
+                        if (puntoInicial) {
+                            Dibujo.actualizarDibujoConCoordenadas(x, y);
+                            
+                            // Simular clic para completar el dibujo
+                            const evento = new MouseEvent('mousedown', {
+                                bubbles: true,
+                                cancelable: true,
+                                button: 0
+                            });
+                            canvas.dispatchEvent(evento);
+                        } else {
+                            Dibujo.iniciarDibujoEn(x, y);
+                        }
+                    } else {
+                        Utilidades.mostrarMensajeTemporalEstado("Por favor ingrese coordenadas válidas");
+                    }
+                }
+            });
+        }
+    },
+
+    inicializarSnapConfig() {
+        // Configurar event listeners para opciones de snap
+        const snapOptions = [
+            "snapPuntoFinal",
+            "snapPuntoMedio",
+            "snapCentro",
+            "snapCentroGeometrico",
+            "snapPunto",
+            "snapCuadrante",
+            "snapInterseccion",
+            "snapExtension",
+            "snapInsercion",
+            "snapPerpendicular",
+            "snapTangente",
+            "snapCercano",
+            "snapInterseccionFicticia",
+            "snapParalelo"
+        ];
+        
+        snapOptions.forEach(id => {
+            const checkbox = document.getElementById(id);
+            if (checkbox) {
+                checkbox.addEventListener("change", function() {
+                    const snapType = id.replace("snap", "");
+                    const propName = snapType.charAt(0).toLowerCase() + snapType.slice(1);
+                    tiposSnap[propName] = this.checked;
+                    Dibujo.actualizarSnapPuntos();
+                    
+                    // Actualizar atributos de accesibilidad
+                    this.setAttribute('aria-checked', this.checked ? 'true' : 'false');
+                    
+                    Utilidades.mostrarMensajeTemporalEstado(`Snap a ${snapType} ${this.checked ? "activado" : "desactivado"}`);
+                });
+                
+                // Inicializar atributos de accesibilidad
+                checkbox.setAttribute('role', 'checkbox');
+                checkbox.setAttribute('aria-checked', checkbox.checked ? 'true' : 'false');
+            }
+        });
+        
+        // Cerrar menú de snap al hacer clic fuera
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById("menuSnapObjetos");
+            const btnSnap = document.getElementById("btnSnap");
+            
+            if (menu && menu.style.display === "block" && 
+                btnSnap && !btnSnap.contains(e.target) && 
+                !menu.contains(e.target)) {
+                menu.style.display = "none";
+                menu.setAttribute('aria-hidden', 'true');
+            }
+        });
+    },
+    
+    inicializarModalSVG() {
+        // Botón para cerrar modal SVG
+        Utilidades.registrarEventos('cerrarModalImportarSVG', {
+            'click': () => {
+                const modal = document.getElementById("modalImportarSVG");
+                if (modal) {
+                    modal.style.display = "none";
+                    modal.setAttribute('aria-hidden', 'true');
+                }
+            }
+        });
+        
+        // Botón para cargar SVG
+        Utilidades.registrarEventos('btnCargarSVG', {
+            'click': () => {
+                const fileInput = document.getElementById("inputArchivoSVG");
+                if (fileInput && fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    const reader = new FileReader();
+                    
+                    reader.onload = (event) => {
+                        Canvas2D.importarSVG(event.target.result);
+                        
+                        // Cerrar modal
+                        const modal = document.getElementById("modalImportarSVG");
+                        if (modal) {
+                            modal.style.display = "none";
+                            modal.setAttribute('aria-hidden', 'true');
+                        }
+                    };
+                    
+                    reader.readAsText(file);
+                } else {
+                    Utilidades.mostrarMensajeTemporalEstado("Por favor seleccione un archivo SVG");
+                }
+            }
+        });
+		
+		// Botón para pegar SVG
+    Utilidades.registrarEventos('btnPegarSVG', {
+        'click': () => {
+            const textarea = document.getElementById("textareaSVG");
+            if (textarea && textarea.value.trim() !== "") {
+                Canvas2D.importarSVG(textarea.value);
+                
+                // Cerrar modal
+                const modal = document.getElementById("modalImportarSVG");
+                if (modal) {
+                    modal.style.display = "none";
+                    modal.setAttribute('aria-hidden', 'true');
+                }
+                
+                // Limpiar textarea
+                textarea.value = "";
+            } else {
+                Utilidades.mostrarMensajeTemporalEstado("Por favor pegue código SVG válido en el área de texto");
+                if (textarea) textarea.focus();
+            }
+        }
+    });
+    
+    // Configurar input de archivo SVG
+    Utilidades.registrarEventos('inputArchivoSVG', {
+        'change': (e) => {
+            if (e.target.files.length > 0) {
+                const btnCargarSVG = document.getElementById('btnCargarSVG');
+                if (btnCargarSVG) {
+                    btnCargarSVG.focus();
+                    btnCargarSVG.style.backgroundColor = '#27ae60';
+                }
+            }
         }
     });
 },
 
-resetearEstadoDibujo() {
-    puntoInicial = null;
-    if (entradaDimensionesElement) entradaDimensionesElement.style.display = "none";
-    dimensionManualActiva = false;
-},
+    resetearEstadoDibujo() {
+        puntoInicial = null;
+        if (entradaDimensionesElement) entradaDimensionesElement.style.display = "none";
+        dimensionManualActiva = false;
+        dibujarPolilineaEnProgreso = false;
+        dibujarArcoEnProgreso = false;
+        puntosPolilinea = [];
+        puntosArco = [];
+        
+        // Ocultar elementos visuales
+        const elementos = [anguloVisualElement, distanciaVisualElement, ortoVisualElement, anguloInfoElement];
+        elementos.forEach(elem => {
+            if (elem) elem.style.display = "none";
+        });
+    },
 
-activarBoton(id) {
-    const botones = [
-        "btnElipse",
-        "btnLinea",
-        "btnRectangulo",
-        "btnCirculo",
-        "btnMano",
-        "btnPolilinea",
-        "btnArco"
-    ];
-    
-    botones.forEach(btnId => {
-        const btn = document.getElementById(btnId);
-        if (btn) btn.classList.remove("active");
-    });
-    
-    const btnActivo = document.getElementById(id);
-    if (btnActivo) btnActivo.classList.add("active");
-},
+    activarBoton(id) {
+        const botones = [
+            "btnElipse",
+            "btnLinea",
+            "btnRectangulo",
+            "btnCirculo",
+            "btnMano",
+            "btnPolilinea",
+            "btnArco"
+        ];
+        
+        botones.forEach(btnId => {
+            const btn = document.getElementById(btnId);
+            if (btn) {
+                btn.classList.remove("active");
+                btn.setAttribute('aria-pressed', 'false');
+            }
+        });
+        
+        const btnActivo = document.getElementById(id);
+        if (btnActivo) {
+            btnActivo.classList.add("active");
+            btnActivo.setAttribute('aria-pressed', 'true');
+        }
+    },
 
-deshacer() {
-    if (posicionHistorial <= 0) {
-        Utilidades.mostrarMensajeTemporalEstado("No hay más acciones para deshacer");
-        return;
+    deshacer() {
+        if (posicionHistorial <= 0) {
+            Utilidades.mostrarMensajeTemporalEstado("No hay más acciones para deshacer");
+            return;
+        }
+        
+        posicionHistorial--;
+        const estadoAnterior = historialEstados[posicionHistorial];
+        
+        // Restaurar estado
+        zoomLevel = estadoAnterior.zoomLevel || zoomLevel;
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.putImageData(estadoAnterior.imagen, 0, 0);
+        formas = JSON.parse(JSON.stringify(estadoAnterior.formas));
+        
+        // Actualizar 3D si es necesario
+        Dibujo.actualizarLineas3D();
+        
+        // Actualizar puntos de snap
+        Dibujo.actualizarSnapPuntos();
+        
+        // Restaurar transformación
+        if (estadoAnterior.transformacion) {
+            ctx.setTransform(
+                estadoAnterior.transformacion.a,
+                estadoAnterior.transformacion.b,
+                estadoAnterior.transformacion.c,
+                estadoAnterior.transformacion.d,
+                estadoAnterior.transformacion.e,
+                estadoAnterior.transformacion.f
+            );
+        }
+        
+        // Actualizar información de zoom
+        Canvas2D.actualizarInfoZoom();
+        
+        Utilidades.mostrarMensajeTemporalEstado("Acción deshecha");
+        canvas.setAttribute('aria-label', 'Acción deshecha');
     }
-    
-    posicionHistorial--;
-    const estadoAnterior = historialEstados[posicionHistorial];
-    
-    // Restaurar estado
-    zoomLevel = estadoAnterior.zoomLevel || zoomLevel;
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.putImageData(estadoAnterior.imagen, 0, 0);
-    formas = JSON.parse(JSON.stringify(estadoAnterior.formas));
-    
-    // Actualizar 3D si es necesario
-    Dibujo.actualizarLineas3D();
-    
-    // Actualizar puntos de snap
-    Dibujo.actualizarSnapPuntos();
-    
-    // Restaurar transformación
-    if (estadoAnterior.transformacion) {
-        ctx.setTransform(
-            estadoAnterior.transformacion.a,
-            estadoAnterior.transformacion.b,
-            estadoAnterior.transformacion.c,
-            estadoAnterior.transformacion.d,
-            estadoAnterior.transformacion.e,
-            estadoAnterior.transformacion.f
-        );
-    }
-    
-    // Actualizar información de zoom
-    Canvas2D.actualizarInfoZoom();
-    
-    Utilidades.mostrarMensajeTemporalEstado("Acción deshecha");
-}
 };
 
-// Inicialización de la aplicación
+// Función para inicialización al cargar el documento
 document.addEventListener("DOMContentLoaded", function() {
     try {
+        console.log("Iniciando aplicación CAD...");
+        
         // Inicializar 2D
         if (!Canvas2D.inicializar()) {
             console.error("Error al inicializar el canvas 2D");
@@ -2543,6 +3654,13 @@ document.addEventListener("DOMContentLoaded", function() {
         // Dibujar rectángulo de prueba para confirmar que funciona
         ctx.fillStyle = "red";
         ctx.fillRect(350, 200, 50, 50);
+        
+        // Colocar foco inicial en el canvas para accesibilidad
+        const canvas = document.getElementById('lienzo');
+        if (canvas) {
+            canvas.focus();
+        }
+        
         console.log("Canvas 2D inicializado correctamente");
         
         Utilidades.mostrarMensajeTemporalEstado("Editor CAD inicializado correctamente");
@@ -2555,9 +3673,12 @@ document.addEventListener("DOMContentLoaded", function() {
 // Añadir un manejador global de errores
 window.addEventListener('error', function(event) {
     console.error("Error no capturado:", event.error);
-    Utilidades.mostrarMensajeTemporalEstado("Ocurrió un error inesperado");
+    Utilidades.mostrarMensajeTemporalEstado("Ocurrió un error inesperado: " + (event.error?.message || "Error desconocido"));
 });
+
+// Inicialización manual después de 1 segundo para asegurar que todos los elementos estén cargados
 setTimeout(() => Canvas2D.inicializarManualmente(), 1000);
+
 </script>
 </body>
 </html>
